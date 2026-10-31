@@ -203,18 +203,18 @@ function addTimbanganRow() {
   div.className = 'timbangan-row';
   div.dataset.index = timbanganCount;
   div.innerHTML = `
-    <span class="row-label text-xs text-slate-500 w-28 flex-shrink-0">Angkatan ${timbanganCount}:</span>
+    <span class="row-label">Angkatan ${timbanganCount}:</span>
     <input
       type="number"
       class="timbangan-input form-input"
-      placeholder="Contoh: 8.50"
+      placeholder="0.00"
       min="0" step="0.01"
       oninput="hitungTimbangan()"
     />
-    <span class="text-xs text-slate-400 flex-shrink-0">Kw</span>
+    <span class="timbangan-unit">Kw</span>
     ${timbanganCount > 1
-      ? `<button type="button" class="btn-danger flex-shrink-0" onclick="hapusTimbangan(this)">✕</button>`
-      : `<span class="w-8"></span>`
+      ? `<button type="button" class="btn-danger" onclick="hapusTimbangan(this)">Hapus</button>`
+      : `<span style="width: 48px;"></span>`
     }
   `;
   container.appendChild(div);
@@ -281,25 +281,25 @@ function updateDepositPreview(estimasiHarga) {
   previewEl.classList.remove('hidden');
 
   if (sisaSetelah < 0) {
-    previewEl.className = 'p-3 rounded-lg border text-sm bg-red-50 border-red-300 text-red-700';
+    previewEl.className = 'calc-preview-box calc-preview-danger';
     previewEl.innerHTML = `
-      ⚠️ <strong>Kurang Bayar!</strong> Sisa deposit saat ini:
-      <strong>${formatRupiah(p.sisaDeposit)}</strong><br>
-      Setelah dipotong: <strong>${formatRupiah(sisaSetelah)}</strong>
-      (akan menjadi <em>minus / hutang</em>)
+      <strong>Status Defisit / Kurang Bayar</strong> &mdash; Saldo deposit saat ini:
+      <strong>${formatRupiah(p.sisaDeposit)}</strong>. Setelah transaksi dipotong, sisa saldo menjadi
+      <strong>${formatRupiah(sisaSetelah)}</strong> (posisi saldo negatif / bon pengepul).
     `;
   } else if (sisaSetelah < WARN_THRESHOLD) {
-    previewEl.className = 'p-3 rounded-lg border text-sm bg-amber-50 border-amber-300 text-amber-700';
+    previewEl.className = 'calc-preview-box calc-preview-warning';
     previewEl.innerHTML = `
-      ⚡ Sisa deposit saat ini: <strong>${formatRupiah(p.sisaDeposit)}</strong><br>
-      Setelah dipotong: <strong>${formatRupiah(sisaSetelah)}</strong>
-      — <em>Deposit hampir habis!</em>
+      <strong>Peringatan Saldo Menipis</strong> &mdash; Saldo deposit saat ini:
+      <strong>${formatRupiah(p.sisaDeposit)}</strong>. Setelah transaksi dipotong, sisa saldo menjadi
+      <strong>${formatRupiah(sisaSetelah)}</strong> (mendekati batas minimum).
     `;
   } else {
-    previewEl.className = 'p-3 rounded-lg border text-sm bg-green-50 border-green-300 text-green-700';
+    previewEl.className = 'calc-preview-box calc-preview-ok';
     previewEl.innerHTML = `
-      ✅ Sisa deposit saat ini: <strong>${formatRupiah(p.sisaDeposit)}</strong><br>
-      Setelah dipotong: <strong>${formatRupiah(sisaSetelah)}</strong>
+      <strong>Saldo Mencukupi</strong> &mdash; Saldo deposit saat ini:
+      <strong>${formatRupiah(p.sisaDeposit)}</strong>. Setelah transaksi dipotong, sisa saldo menjadi
+      <strong>${formatRupiah(sisaSetelah)}</strong>.
     `;
   }
 }
@@ -541,8 +541,8 @@ function renderKPI() {
 
   // Warna sisa deposit
   const sisaEl = document.getElementById('kpiSisaDeposit');
-  sisaEl.className = 'kpi-value mt-0.5 leading-tight ' +
-    (sisaDeposit < 0 ? 'text-red-600' : sisaDeposit < WARN_THRESHOLD ? 'text-amber-600' : 'text-slate-800');
+  sisaEl.className = 'ledger-value ' +
+    (sisaDeposit < 0 ? 'text-danger' : sisaDeposit < WARN_THRESHOLD ? 'text-warning' : '');
 }
 
 // ============================================================
@@ -557,16 +557,12 @@ function renderAlerts() {
     .forEach(p => {
       const div = document.createElement('div');
       const isMinus = p.sisaDeposit < 0;
-      div.className = `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium
-        ${isMinus
-          ? 'bg-red-50 border border-red-200 text-red-700'
-          : 'bg-amber-50 border border-amber-200 text-amber-700'}`;
+      div.className = `alert-banner ${isMinus ? 'alert-danger' : 'alert-warning'}`;
       div.innerHTML = `
-        <span class="text-lg">${isMinus ? '🔴' : '🟡'}</span>
-        <span>
-          <strong>${p.nama}</strong> (${p.daerah}) —
-          Sisa deposit: <strong>${formatRupiah(p.sisaDeposit)}</strong>
-          ${isMinus ? '— <em>KURANG BAYAR / MINUS!</em>' : '— Deposit hampir habis'}
+        <span class="alert-tag">${isMinus ? 'DEFISIT / MINUS' : 'SALDO MENIPIS'}</span>
+        <span class="alert-text">
+          <strong>${p.nama}</strong> (${p.daerah}) &mdash; Sisa deposit: <strong>${formatRupiah(p.sisaDeposit)}</strong>
+          ${isMinus ? '&mdash; Nilai serapan getah melebihi deposit (tercatat bon/kurang bayar).' : '&mdash; Saldo berada di bawah batas minimum operasional.'}
         </span>
       `;
       section.appendChild(div);
@@ -629,8 +625,8 @@ function renderPengepulList() {
           </td>
           <td class="text-center">
             <div class="flex gap-1 justify-center">
-              <button class="btn-edit" onclick="openEditPengepul('${p.id}')">✏️ Edit</button>
-              <button class="btn-hapus" onclick="konfirmHapusPengepul('${p.id}')">🗑️ Hapus</button>
+              <button class="btn-table-edit" onclick="openEditPengepul('${p.id}')">Edit</button>
+              <button class="btn-table-delete" onclick="konfirmHapusPengepul('${p.id}')">Hapus</button>
             </div>
           </td>
         </tr>
@@ -660,8 +656,8 @@ function renderDepositList() {
         <td class="text-slate-400 text-xs">${d.catatan}</td>
         <td class="text-center">
           <div class="flex gap-1 justify-center">
-            <button class="btn-edit" onclick="openEditDeposit('${d.id}')">✏️ Edit</button>
-            <button class="btn-hapus" onclick="konfirmHapusDeposit('${d.id}')">🗑️ Hapus</button>
+            <button class="btn-table-edit" onclick="openEditDeposit('${d.id}')">Edit</button>
+            <button class="btn-table-delete" onclick="konfirmHapusDeposit('${d.id}')">Hapus</button>
           </div>
         </td>
       </tr>
@@ -709,7 +705,7 @@ function renderRekapTable(filter = {}) {
 
 /** Membuat HTML badge status sisa deposit */
 function badgeSisaDeposit(sisa) {
-  if (sisa < 0)                  return '<span class="badge badge-danger">Minus</span>';
+  if (sisa < 0)                  return '<span class="badge badge-danger">Kurang Bayar</span>';
   if (sisa < WARN_THRESHOLD)     return '<span class="badge badge-warn">Menipis</span>';
   return '<span class="badge badge-ok">Aman</span>';
 }
@@ -760,8 +756,8 @@ function renderRiwayat(filter = {}) {
         <td class="text-xs text-slate-400">${tx.catatan || '—'}</td>
         <td class="text-center">
           <div class="flex gap-1 justify-center">
-            <button class="btn-edit" onclick="openEditPembelian('${tx.id}')">✏️</button>
-            <button class="btn-hapus" onclick="konfirmHapusPembelian('${tx.id}')">🗑️</button>
+            <button class="btn-table-edit" onclick="openEditPembelian('${tx.id}')">Edit</button>
+            <button class="btn-table-delete" onclick="konfirmHapusPembelian('${tx.id}')">Hapus</button>
           </div>
         </td>
       </tr>
@@ -774,7 +770,7 @@ function renderRiwayat(filter = {}) {
   const sumHarga   = data.reduce((s, tx) => s + tx.totalHarga, 0);
   sumEl.classList.remove('hidden');
   sumEl.innerHTML = `
-    📊 <strong>${data.length} transaksi</strong> ditemukan —
+    <strong>${data.length} transaksi ditemukan</strong> &mdash;
     Total: <strong>${formatDecimal(sumKuintal, 2)} Kw</strong>
     (${formatDecimal(sumTonase, 3)} Ton) senilai <strong>${formatRupiah(sumHarga)}</strong>
   `;
@@ -1040,7 +1036,7 @@ function buildPrintPage(judul, subtitle, bodyContent) {
 </head>
 <body>
   <div class="print-header">
-    <h1>🌿 SiKaret — ${judul}</h1>
+    <h1>SIKARET — ${judul}</h1>
     <div class="sub">${subtitle}</div>
     <div class="meta">Dicetak pada: ${new Date().toLocaleString('id-ID')}</div>
   </div>
@@ -1100,11 +1096,11 @@ function renderDepositStatusList() {
       const color = p.sisaDeposit < 0 ? '#dc2626' : p.sisaDeposit < WARN_THRESHOLD ? '#d97706' : '#16a34a';
 
       const div = document.createElement('div');
-      div.className = 'mb-3';
+      div.className = 'deposit-bar-container';
       div.innerHTML = `
-        <div class="flex justify-between items-center mb-1 text-xs">
-          <span class="font-medium text-slate-700">${p.nama} <span class="text-slate-400">(${p.daerah})</span></span>
-          <span class="${p.sisaDeposit < 0 ? 'text-red-600' : p.sisaDeposit < WARN_THRESHOLD ? 'text-amber-600' : 'text-green-700'} font-semibold">
+        <div class="deposit-bar-header">
+          <span class="font-medium">${p.nama} <span class="text-muted">(${p.daerah})</span></span>
+          <span class="${p.sisaDeposit < 0 ? 'text-danger' : p.sisaDeposit < WARN_THRESHOLD ? 'text-warning' : 'text-accent'} font-semibold">
             ${formatRupiah(p.sisaDeposit)}
           </span>
         </div>
@@ -1216,9 +1212,9 @@ function renderSisaDepositChart(canvasId, labels, data, colors) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
 
-  // Warna: merah jika minus, kuning jika menipis, hijau jika aman
+  // Warna: merah jika minus, kuning jika menipis, hijau getah jika aman
   const barColors = data.map(v =>
-    v < 0 ? '#dc2626' : v < WARN_THRESHOLD ? '#d97706' : '#16a34a'
+    v < 0 ? '#b91c1c' : v < WARN_THRESHOLD ? '#b45309' : '#1b4332'
   );
 
   charts[canvasId] = new Chart(ctx, {
@@ -1288,14 +1284,14 @@ function renderTrenChart() {
       datasets: [{
         label: 'Total Kuintal per Bulan',
         data,
-        backgroundColor: 'rgba(22,163,74,0.1)',
-        borderColor:      '#16a34a',
-        borderWidth: 2.5,
+        backgroundColor: 'rgba(27, 67, 50, 0.08)',
+        borderColor:      '#1b4332',
+        borderWidth: 2,
         fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#16a34a',
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        tension: 0.3,
+        pointBackgroundColor: '#1b4332',
+        pointRadius: 4,
+        pointHoverRadius: 6,
       }]
     },
     options: {
@@ -1318,8 +1314,8 @@ function renderTrenChart() {
 // ============================================================
 function generateColors(n) {
   const palette = [
-    '#16a34a','#0891b2','#7c3aed','#d97706','#dc2626',
-    '#2563eb','#059669','#db2777','#ea580c','#65a30d',
+    '#1b4332', '#3f3f46', '#2563eb', '#92400e', '#475569',
+    '#15803d', '#52525b', '#b45309', '#1e293b', '#0d9488'
   ];
   const out = [];
   for (let i = 0; i < n; i++) out.push(palette[i % palette.length]);
@@ -1542,10 +1538,10 @@ function addEditTimbanganRow(nilai = '') {
     <input type="number" class="edit-timbangan-input form-input"
            value="${nilai}" placeholder="0.00" min="0" step="0.01"
            oninput="hitungEditTimbangan()" />
-    <span class="text-xs text-slate-400 flex-shrink-0">Kw</span>
+    <span class="timbangan-unit">Kw</span>
     ${editTimbanganCount > 1
-      ? `<button type="button" class="btn-danger flex-shrink-0" onclick="hapusEditTimbangan(this)">✕</button>`
-      : `<span class="w-8"></span>`}
+      ? `<button type="button" class="btn-danger" onclick="hapusEditTimbangan(this)">Hapus</button>`
+      : `<span style="width: 48px;"></span>`}
   `;
   container.appendChild(div);
 }

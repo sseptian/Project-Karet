@@ -3,132 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SiKaret – Sistem Pencatatan Deposit & Pembelian Karet</title>
+  <title>SiKaret – Sistem Pembukuan Deposit & Timbangan Pengepul Karet</title>
+  <meta name="description" content="Aplikasi pencatatan deposit modal, timbangan getah karet bertahap, dan kalkulasi tonase otomatis untuk pengepul karet di Sumatera Selatan." />
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <!-- Custom styles -->
-  <link rel="stylesheet" href="style.css" />
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary:  { DEFAULT: '#16a34a', light: '#4ade80', dark: '#15803d' },
-            accent:   { DEFAULT: '#0891b2', light: '#38bdf8' },
-            danger:   { DEFAULT: '#dc2626', light: '#fca5a5' },
-            warning:  { DEFAULT: '#d97706', light: '#fde68a' },
-            surface:  '#f8fafc',
-          },
-          fontFamily: { sans: ['"Inter"', 'system-ui', 'sans-serif'] }
-        }
-      }
-    }
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Bespoke Design System (Vanilla CSS) -->
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 min-h-screen">
+<body>
 
   <!-- ===== HEADER ===== -->
-  <header class="bg-gradient-to-r from-green-700 to-emerald-600 text-white shadow-lg sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <!-- Logo icon -->
-        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-xl font-bold">🌿</div>
-        <div>
-          <h1 class="text-lg font-bold leading-tight">SiKaret</h1>
-          <p class="text-xs text-emerald-200">Sistem Pencatatan Pengepul Karet</p>
-        </div>
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <h1 class="brand-title">SIKARET</h1>
+        <p class="brand-subtitle">Pembukuan Deposit &amp; Timbangan Karet Pengepul</p>
       </div>
-      <div class="text-right text-xs text-emerald-100 hidden sm:block">
-        <div id="headerDate" class="font-medium"></div>
-        <div>v1.0.0</div>
+      <div class="header-meta">
+        <span id="headerDate" class="header-date"></span>
+        <span class="system-status">Penyimpanan Lokal Aktif</span>
       </div>
     </div>
   </header>
 
   <!-- ===== NAVIGATION TABS ===== -->
-  <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[60px] z-40 overflow-x-auto">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="flex gap-1 py-2 min-w-max">
-        <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
-        <button class="tab-btn" data-tab="pengepul">👤 Pengepul</button>
-        <button class="tab-btn" data-tab="deposit">💰 Deposit</button>
-        <button class="tab-btn" data-tab="pembelian">⚖️ Pembelian</button>
-        <button class="tab-btn" data-tab="rekap">📋 Rekap</button>
-        <button class="tab-btn" data-tab="riwayat">🗒️ Riwayat</button>
-        <button class="tab-btn" data-tab="grafik">📈 Grafik</button>
+  <nav class="app-nav">
+    <div class="nav-container">
+      <div class="tabs-list" role="tablist">
+        <button class="tab-btn active" data-tab="dashboard" role="tab">Ringkasan</button>
+        <button class="tab-btn" data-tab="pengepul" role="tab">Daftar Pengepul</button>
+        <button class="tab-btn" data-tab="deposit" role="tab">Buku Deposit</button>
+        <button class="tab-btn" data-tab="pembelian" role="tab">Catat Timbangan</button>
+        <button class="tab-btn" data-tab="rekap" role="tab">Rekapitulasi Saldo</button>
+        <button class="tab-btn" data-tab="riwayat" role="tab">Riwayat Transaksi</button>
+        <button class="tab-btn" data-tab="grafik" role="tab">Analisis Grafik</button>
       </div>
     </div>
   </nav>
 
   <!-- ===== MAIN CONTENT ===== -->
-  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+  <main class="main-container">
 
     <!-- ===================== TAB: DASHBOARD ===================== -->
     <section id="tab-dashboard" class="tab-content">
 
-      <!-- KPI Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="kpi-card border-l-4 border-blue-500">
-          <div class="kpi-icon bg-blue-100 text-blue-600">💵</div>
-          <div>
-            <p class="kpi-label">Total Deposit Disalurkan</p>
-            <p class="kpi-value" id="kpiTotalDeposit">Rp 0</p>
-          </div>
+      <!-- Ledger Summary Strip -->
+      <div class="ledger-strip">
+        <div class="ledger-item">
+          <span class="ledger-label">Total Deposit Disalurkan</span>
+          <span class="ledger-value" id="kpiTotalDeposit">Rp 0</span>
+          <span class="ledger-sub">Akumulasi modal panjar jalan</span>
         </div>
-        <div class="kpi-card border-l-4 border-green-500">
-          <div class="kpi-icon bg-green-100 text-green-600">🛒</div>
-          <div>
-            <p class="kpi-label">Total Nilai Beli Karet</p>
-            <p class="kpi-value" id="kpiTotalBeli">Rp 0</p>
-          </div>
+        <div class="ledger-item">
+          <span class="ledger-label">Total Pembelian Karet</span>
+          <span class="ledger-value" id="kpiTotalBeli">Rp 0</span>
+          <span class="ledger-sub">Nilai getah terserap transaksi</span>
         </div>
-        <div class="kpi-card border-l-4 border-amber-500">
-          <div class="kpi-icon bg-amber-100 text-amber-600">🏦</div>
-          <div>
-            <p class="kpi-label">Total Sisa Deposit Aktif</p>
-            <p class="kpi-value" id="kpiSisaDeposit">Rp 0</p>
-          </div>
+        <div class="ledger-item highlight-item">
+          <span class="ledger-label">Sisa Saldo Deposit Aktif</span>
+          <span class="ledger-value" id="kpiSisaDeposit">Rp 0</span>
+          <span class="ledger-sub">Saldo berjalan di tangan mitra</span>
         </div>
-        <div class="kpi-card border-l-4 border-purple-500">
-          <div class="kpi-icon bg-purple-100 text-purple-600">⚖️</div>
-          <div>
-            <p class="kpi-label">Total Akumulasi Tonase</p>
-            <p class="kpi-value" id="kpiTotalTonase">0 Kw</p>
-            <p class="text-xs text-slate-400" id="kpiTotalTon">0 Ton</p>
-          </div>
+        <div class="ledger-item">
+          <span class="ledger-label">Akumulasi Tonase</span>
+          <span class="ledger-value" id="kpiTotalTonase">0 Kw</span>
+          <span class="ledger-sub" id="kpiTotalTon">0 Ton</span>
         </div>
       </div>
 
-      <!-- Alert section -->
-      <div id="alertSection" class="space-y-2 mb-4"></div>
+      <!-- Alert / Status Notice Section -->
+      <div id="alertSection" class="alerts-container"></div>
 
-      <!-- Quick summary charts row -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Quick Summary Charts Row -->
+      <div class="charts-row">
         <div class="card">
-          <h3 class="section-title">Tonase per Pengepul</h3>
+          <h2 class="card-heading">Distribusi Tonase per Pengepul</h2>
+          <p class="card-desc">Volume getah karet yang disetor dalam satuan Ton.</p>
           <div class="chart-container"><canvas id="chartTonaseDashboard"></canvas></div>
         </div>
         <div class="card">
-          <h3 class="section-title">Sisa Deposit per Pengepul</h3>
+          <h2 class="card-heading">Posisi Sisa Deposit per Pengepul</h2>
+          <p class="card-desc">Status likuiditas saldo modal mitra aktif saat ini.</p>
           <div class="chart-container"><canvas id="chartDepositDashboard"></canvas></div>
         </div>
       </div>
 
-      <!-- Recent transactions -->
-      <div class="card mt-6">
-        <h3 class="section-title">5 Transaksi Pembelian Terbaru</h3>
-        <div class="overflow-x-auto">
+      <!-- Recent Transactions Table -->
+      <div class="card">
+        <div class="card-header-flex">
+          <div>
+            <h2 class="card-heading">Transaksi Pembelian Terbaru</h2>
+            <p class="card-desc">5 catatan setoran timbangan karet mutakhir.</p>
+          </div>
+        </div>
+        <div class="table-responsive">
           <table class="data-table" id="tableRecentTx">
             <thead>
               <tr>
-                <th>Tanggal</th><th>Pengepul</th><th>Daerah</th>
-                <th>Total Kuintal</th><th>Tonase</th><th>Total Harga</th>
+                <th>Tanggal</th>
+                <th>Pengepul</th>
+                <th>Daerah Asal</th>
+                <th class="text-right">Total Kuintal</th>
+                <th class="text-right">Tonase</th>
+                <th class="text-right">Total Nilai</th>
               </tr>
             </thead>
             <tbody id="tbodyRecentTx"></tbody>
@@ -140,192 +124,229 @@
 
     <!-- ===================== TAB: PENGEPUL ===================== -->
     <section id="tab-pengepul" class="tab-content hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid-two">
 
         <!-- Form Tambah Pengepul -->
         <div class="card">
-          <h3 class="section-title">➕ Tambah Pengepul Baru</h3>
-          <form id="formPengepul" class="space-y-4">
+          <h2 class="card-heading">Registrasi Pengepul Baru</h2>
+          <p class="card-desc">Daftarkan mitra pengepul karet ke dalam buku induk.</p>
+          <form id="formPengepul" class="form-grid">
             <div class="form-group">
-              <label class="form-label" for="inputNamaPengepul">Nama Pengepul <span class="text-red-500">*</span></label>
-              <input type="text" id="inputNamaPengepul" class="form-input" placeholder="Contoh: Pak Ahmad" required />
+              <label class="form-label" for="inputNamaPengepul">Nama Lengkap Pengepul <span>*</span></label>
+              <input type="text" id="inputNamaPengepul" class="form-input" placeholder="Contoh: Pak Sunaryo" required />
             </div>
             <div class="form-group">
-              <label class="form-label" for="inputDaerah">Asal Daerah <span class="text-red-500">*</span></label>
+              <label class="form-label" for="inputDaerah">Asal Daerah / Basis Operasional <span>*</span></label>
               <input type="text" id="inputDaerah" class="form-input" placeholder="Contoh: Talang Ubi" required />
             </div>
-            <button type="submit" class="btn-primary w-full">💾 Simpan Pengepul</button>
+            <button type="submit" class="btn-primary w-full">Simpan Data Pengepul</button>
           </form>
         </div>
 
         <!-- Daftar Pengepul -->
         <div class="card">
-          <h3 class="section-title">👥 Daftar Semua Pengepul</h3>
-          <div class="overflow-x-auto">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-heading">Buku Induk Pengepul</h2>
+              <p class="card-desc">Daftar mitra terdaftar beserta saldo deposit berjalan.</p>
+            </div>
+          </div>
+          <div class="table-responsive">
             <table class="data-table">
               <thead>
-                <tr><th>ID</th><th>Nama</th><th>Daerah</th><th>Sisa Deposit</th><th>Tonase</th><th class="text-center">Aksi</th></tr>
+                <tr>
+                  <th>ID</th>
+                  <th>Nama</th>
+                  <th>Daerah</th>
+                  <th class="text-right">Sisa Deposit</th>
+                  <th class="text-right">Tonase</th>
+                  <th class="text-center">Tindakan</th>
+                </tr>
               </thead>
               <tbody id="tbodyPengepulList"></tbody>
             </table>
           </div>
         </div>
+
       </div>
     </section>
 
     <!-- ===================== TAB: DEPOSIT ===================== -->
     <section id="tab-deposit" class="tab-content hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid-two">
 
         <!-- Form Input Deposit -->
         <div class="card">
-          <h3 class="section-title">💰 Input / Top-Up Deposit</h3>
-          <form id="formDeposit" class="space-y-4">
+          <h2 class="card-heading">Penyaluran Modal Deposit</h2>
+          <p class="card-desc">Catat deposit awal atau penambahan modal jalan (top-up) bagi pengepul.</p>
+          <form id="formDeposit" class="form-grid">
             <div class="form-group">
-              <label class="form-label" for="depositPengepul">Pilih Pengepul <span class="text-red-500">*</span></label>
+              <label class="form-label" for="depositPengepul">Pilih Mitra Pengepul <span>*</span></label>
               <select id="depositPengepul" class="form-input" required>
                 <option value="">-- Pilih Pengepul --</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label" for="depositTanggal">Tanggal Transaksi <span class="text-red-500">*</span></label>
+              <label class="form-label" for="depositTanggal">Tanggal Transaksi Kas <span>*</span></label>
               <input type="date" id="depositTanggal" class="form-input" required />
             </div>
             <div class="form-group">
-              <label class="form-label" for="depositJumlah">Jumlah Deposit (Rp) <span class="text-red-500">*</span></label>
+              <label class="form-label" for="depositJumlah">Jumlah Dana Deposit (Rp) <span>*</span></label>
               <input type="number" id="depositJumlah" class="form-input" placeholder="Contoh: 10000000" min="1" required />
             </div>
             <div class="form-group">
-              <label class="form-label" for="depositCatatan">Catatan</label>
-              <input type="text" id="depositCatatan" class="form-input" placeholder="Keterangan (opsional)" />
+              <label class="form-label" for="depositCatatan">Keterangan / Berita Kas</label>
+              <input type="text" id="depositCatatan" class="form-input" placeholder="Contoh: Top-up modal jalan awal pekan" />
             </div>
-            <button type="submit" class="btn-primary w-full">💾 Tambah Deposit</button>
+            <button type="submit" class="btn-primary w-full">Catat Penyaluran Deposit</button>
           </form>
         </div>
 
         <!-- Riwayat Deposit -->
         <div class="card">
-          <h3 class="section-title">📋 Riwayat Top-Up Deposit</h3>
-          <div class="overflow-x-auto">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-heading">Buku Kas Mutasi Deposit</h2>
+              <p class="card-desc">Histori penyaluran dan penambahan dana panjar.</p>
+            </div>
+          </div>
+          <div class="table-responsive">
             <table class="data-table">
               <thead>
-                <tr><th>Tanggal</th><th>Pengepul</th><th>Jumlah</th><th>Catatan</th><th class="text-center">Aksi</th></tr>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Pengepul</th>
+                  <th class="text-right">Nominal</th>
+                  <th>Keterangan</th>
+                  <th class="text-center">Tindakan</th>
+                </tr>
               </thead>
               <tbody id="tbodyDepositList"></tbody>
             </table>
           </div>
         </div>
+
       </div>
     </section>
 
     <!-- ===================== TAB: PEMBELIAN ===================== -->
     <section id="tab-pembelian" class="tab-content hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid-two">
 
-        <!-- Form Pembelian -->
+        <!-- Form Pembelian & Kalkulator Timbangan -->
         <div class="card">
-          <h3 class="section-title">⚖️ Catat Pembelian Karet</h3>
-          <form id="formPembelian" class="space-y-4">
+          <h2 class="card-heading">Pencatatan Pembelian Karet</h2>
+          <p class="card-desc">Input timbangan bertahap per angkatan kuintal dan potong deposit otomatis.</p>
+          <form id="formPembelian" class="form-grid">
 
             <div class="form-group">
-              <label class="form-label" for="beliTanggal">Tanggal Transaksi <span class="text-red-500">*</span></label>
+              <label class="form-label" for="beliTanggal">Tanggal Transaksi Timbang <span>*</span></label>
               <input type="date" id="beliTanggal" class="form-input" required />
             </div>
+
             <div class="form-group">
-              <label class="form-label" for="beliPengepul">Pilih Pengepul <span class="text-red-500">*</span></label>
+              <label class="form-label" for="beliPengepul">Pilih Mitra Pengepul <span>*</span></label>
               <select id="beliPengepul" class="form-input" required>
                 <option value="">-- Pilih Pengepul --</option>
               </select>
             </div>
+
             <div class="form-group">
-              <label class="form-label" for="beliHarga">Harga Beli Karet (Rp/Kg) <span class="text-red-500">*</span></label>
-              <div class="relative">
-                <input type="number" id="beliHarga" class="form-input pr-14" placeholder="Contoh: 1000" min="1" step="1" required />
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 pointer-events-none">Rp/Kg</span>
-              </div>
-              <p class="text-xs text-slate-400 mt-0.5">Otomatis dikonversi ke Rp/Ton dalam kalkulasi</p>
+              <label class="form-label" for="beliHarga">Harga Beli Karet Bersih (Rp/Kg) <span>*</span></label>
+              <input type="number" id="beliHarga" class="form-input" placeholder="Contoh: 1000" min="1" step="1" required />
+              <span class="form-help">Dikonversi otomatis ke harga Rp/Ton (1 Ton = 1.000 Kg).</span>
             </div>
 
             <!-- Kalkulator Timbangan Bertahap -->
             <div class="form-group">
-              <div class="flex items-center justify-between mb-2">
-                <label class="form-label mb-0">Timbangan Bertahap (per Kuintal) <span class="text-red-500">*</span></label>
-                <button type="button" id="btnAddTimbangan" class="btn-secondary text-xs px-3 py-1">+ Tambah Angkatan</button>
+              <div class="timbangan-header">
+                <label class="form-label">Timbangan Bertahap per Angkatan (Kw) <span>*</span></label>
+                <button type="button" id="btnAddTimbangan" class="btn-secondary">+ Tambah Angkatan</button>
               </div>
-              <div id="timbanganContainer" class="space-y-2">
-                <!-- Timbangan rows injected here -->
-              </div>
-              <!-- Ringkasan Timbangan -->
-              <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-sm space-y-1">
-                <div class="flex justify-between">
-                  <span class="text-slate-600">Total Kuintal:</span>
-                  <span class="font-bold text-green-700" id="previewKuintal">0 Kw</span>
+
+              <!-- Container row timbangan -->
+              <div id="timbanganContainer"></div>
+
+              <!-- Ringkasan Kalkulasi Realtime -->
+              <div class="timbangan-summary">
+                <div class="timbangan-summary-row">
+                  <span class="timbangan-summary-label">Total Berat Timbangan:</span>
+                  <span class="timbangan-summary-val" id="previewKuintal">0 Kw</span>
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-600">Total Tonase:</span>
-                  <span class="font-bold text-green-700" id="previewTonase">0.000 Ton</span>
+                <div class="timbangan-summary-row">
+                  <span class="timbangan-summary-label">Konversi Satuan Tonase:</span>
+                  <span class="timbangan-summary-val" id="previewTonase">0.000 Ton</span>
                 </div>
-                <div class="flex justify-between text-slate-500">
-                  <span>Harga/Kg → Harga/Ton:</span>
-                  <span id="previewHargaKonversi" class="font-medium">Rp 0/Kg → Rp 0/Ton</span>
+                <div class="timbangan-summary-row">
+                  <span class="timbangan-summary-label">Skema Konversi Nilai:</span>
+                  <span class="timbangan-summary-val" id="previewHargaKonversi">Rp 0/Kg → Rp 0/Ton</span>
                 </div>
-                <div class="flex justify-between pt-1 border-t border-green-300 mt-1">
-                  <span class="text-slate-700 font-medium">Estimasi Total Harga:</span>
-                  <span class="font-bold text-emerald-700 text-base" id="previewHarga">Rp 0</span>
+                <div class="timbangan-summary-row total-row">
+                  <span class="timbangan-summary-label">Estimasi Nilai Pembelian:</span>
+                  <span class="timbangan-summary-val text-accent" id="previewHarga">Rp 0</span>
                 </div>
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="beliCatatan">Catatan</label>
-              <input type="text" id="beliCatatan" class="form-input" placeholder="Keterangan (opsional)" />
+              <label class="form-label" for="beliCatatan">Catatan / Keterangan Timbangan</label>
+              <input type="text" id="beliCatatan" class="form-input" placeholder="Contoh: Setoran getah slab minggu pertama" />
             </div>
 
-            <!-- Sisa deposit preview -->
-            <div id="depositPreview" class="hidden p-3 rounded-lg border text-sm"></div>
+            <!-- Preview Pemotongan Saldo Deposit -->
+            <div id="depositPreview" class="calc-preview-box hidden"></div>
 
-            <button type="submit" class="btn-primary w-full">💾 Simpan Transaksi Pembelian</button>
+            <button type="submit" class="btn-primary w-full">Simpan Transaksi Pembelian</button>
           </form>
         </div>
 
-        <!-- Info & Tips -->
-        <div class="space-y-4">
-          <div class="card bg-amber-50 border border-amber-200">
-            <h4 class="font-semibold text-amber-800 mb-2">📌 Panduan Input Timbangan</h4>
-            <ul class="text-sm text-amber-700 space-y-1 list-disc list-inside">
-              <li>Masukkan berat tiap angkatan dalam satuan <strong>Kuintal (Kw)</strong></li>
-              <li>Contoh: Angkatan 1 = 8.5 Kw, Angkatan 2 = 9.2 Kw</li>
-              <li>Sistem otomatis menjumlahkan & mengonversi ke Ton</li>
-              <li>1 Ton = 10 Kuintal</li>
-              <li>Harga diinput dalam <strong>Rp/Kg</strong> (misal: Rp 1.000/Kg = Rp 1.000.000/Ton)</li>
+        <!-- Spesifikasi Standar & Status Sisa Saldo -->
+        <div>
+          <div class="guidance-card">
+            <h3 class="guidance-title">Standar Operasional Penimbangan</h3>
+            <ul class="guidance-list">
+              <li>Input berat getah karet dicatat per angkatan timbangan duduk/gantung dalam satuan <strong>Kuintal (Kw)</strong>.</li>
+              <li>Sistem mengonversi secara matematis: <strong>1 Ton = 10 Kuintal = 1.000 Kg</strong>.</li>
+              <li>Harga dasar dimasukkan dalam <strong>Rp/Kg</strong> dan dikonversi ke <strong>Rp/Ton</strong>.</li>
+              <li>Nilai transaksi secara otomatis memotong saldo deposit modal jalan pengepul yang dipilih.</li>
+              <li>Bila pembelian melampaui sisa deposit, selisih dicatat sebagai posisi defisit / bon.</li>
             </ul>
           </div>
+
           <div class="card">
-            <h4 class="font-semibold text-slate-700 mb-3">⚠️ Status Deposit Pengepul</h4>
-            <div id="depositStatusList" class="space-y-2"></div>
+            <h3 class="card-heading">Status Likuiditas Pengepul</h3>
+            <p class="card-desc">Rasio sisa deposit terhadap total modal panjar yang disalurkan.</p>
+            <div id="depositStatusList"></div>
           </div>
         </div>
+
       </div>
     </section>
 
     <!-- ===================== TAB: REKAP ===================== -->
     <section id="tab-rekap" class="tab-content hidden">
       <div class="card">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h3 class="section-title mb-0">📊 Rekapitulasi per Pengepul</h3>
-          <!-- Filter -->
-          <div class="flex flex-wrap gap-2">
-            <input type="text" id="filterRekapNama" class="form-input text-sm py-1 px-2 w-40" placeholder="Cari nama..." />
-            <input type="text" id="filterRekapDaerah" class="form-input text-sm py-1 px-2 w-36" placeholder="Filter daerah..." />
+        <div class="card-header-flex">
+          <div>
+            <h2 class="card-heading">Rekapitulasi Saldo &amp; Tonase Pengepul</h2>
+            <p class="card-desc">Posisi buku kas akumulasi deposit, volume serapan getah, dan saldo berjalan.</p>
+          </div>
+          <div class="filter-box" style="margin-bottom:0; padding:0.5rem;">
+            <input type="text" id="filterRekapNama" class="form-input" style="width: 170px;" placeholder="Cari nama..." />
+            <input type="text" id="filterRekapDaerah" class="form-input" style="width: 150px;" placeholder="Filter daerah..." />
           </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="table-responsive">
           <table class="data-table" id="tableRekap">
             <thead>
               <tr>
-                <th>Pengepul</th><th>Daerah</th>
-                <th>Total Deposit</th><th>Total Tonase</th>
-                <th>Total Nilai Tx</th><th>Sisa Deposit</th><th>Status</th>
+                <th>Pengepul</th>
+                <th>Daerah</th>
+                <th class="text-right">Total Deposit</th>
+                <th class="text-right">Total Tonase</th>
+                <th class="text-right">Nilai Pembelian</th>
+                <th class="text-right">Sisa Deposit</th>
+                <th class="text-center">Status</th>
               </tr>
             </thead>
             <tbody id="tbodyRekap"></tbody>
@@ -337,108 +358,123 @@
     <!-- ===================== TAB: RIWAYAT ===================== -->
     <section id="tab-riwayat" class="tab-content hidden">
       <div class="card">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h3 class="section-title mb-0">🗒️ Riwayat Transaksi Pembelian</h3>
-          <div class="flex flex-wrap gap-2">
-            <button id="btnPrintRiwayat" class="btn-download-csv">🖨️ Cetak / Simpan PDF (Filter)</button>
-            <button id="btnPrintRiwayatAll" class="btn-download-all">🖨️ Cetak / Simpan PDF (Semua)</button>
-            <button id="btnPrintRekap" class="btn-download-json">📊 Cetak Rekap Pengepul</button>
+        <div class="card-header-flex">
+          <div>
+            <h2 class="card-heading">Buku Arsip Transaksi Pembelian</h2>
+            <p class="card-desc">Catatan lengkap seluruh transaksi timbangan karet beserta rincian angkatan.</p>
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button id="btnPrintRiwayat" class="btn-action">Cetak Laporan (Filter)</button>
+            <button id="btnPrintRiwayatAll" class="btn-action">Cetak Semua Riwayat</button>
+            <button id="btnPrintRekap" class="btn-action">Cetak Rekap Pengepul</button>
           </div>
         </div>
-        <!-- Filters -->
-        <div class="flex flex-wrap gap-3 mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
-          <div>
-            <label class="text-xs text-slate-500 block mb-1">Nama Pengepul</label>
-            <input type="text" id="filterNama" class="form-input text-sm py-1 px-2 w-40" placeholder="Cari nama..." />
+
+        <!-- Filter Controls -->
+        <div class="filter-box">
+          <div class="filter-group">
+            <label class="filter-label" for="filterNama">Nama Pengepul</label>
+            <input type="text" id="filterNama" class="form-input" placeholder="Cari nama..." />
           </div>
-          <div>
-            <label class="text-xs text-slate-500 block mb-1">Daerah</label>
-            <input type="text" id="filterDaerah" class="form-input text-sm py-1 px-2 w-36" placeholder="Filter daerah..." />
+          <div class="filter-group">
+            <label class="filter-label" for="filterDaerah">Daerah Asal</label>
+            <input type="text" id="filterDaerah" class="form-input" placeholder="Filter daerah..." />
           </div>
-          <div>
-            <label class="text-xs text-slate-500 block mb-1">Dari Tanggal</label>
-            <input type="date" id="filterDariTgl" class="form-input text-sm py-1 px-2" />
+          <div class="filter-group">
+            <label class="filter-label" for="filterDariTgl">Dari Tanggal</label>
+            <input type="date" id="filterDariTgl" class="form-input" />
           </div>
-          <div>
-            <label class="text-xs text-slate-500 block mb-1">Sampai Tanggal</label>
-            <input type="date" id="filterSampaiTgl" class="form-input text-sm py-1 px-2" />
+          <div class="filter-group">
+            <label class="filter-label" for="filterSampaiTgl">Sampai Tanggal</label>
+            <input type="date" id="filterSampaiTgl" class="form-input" />
           </div>
-          <div class="flex items-end">
-            <button id="btnResetFilter" class="btn-secondary text-sm py-1 px-3">↺ Reset</button>
-          </div>
+          <button id="btnResetFilter" class="btn-secondary" style="height:38px;">Reset Filter</button>
         </div>
-        <div class="overflow-x-auto">
+
+        <!-- Table Data -->
+        <div class="table-responsive">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Tanggal</th><th>Pengepul</th><th>Daerah</th>
-                <th>Harga/Kg</th><th>Harga/Ton</th><th>Timbangan Detail</th>
-                <th>Total Kw</th><th>Tonase</th><th>Total Harga</th><th>Catatan</th>
-                <th class="text-center">Aksi</th>
+                <th>Tanggal</th>
+                <th>Pengepul</th>
+                <th>Daerah</th>
+                <th class="text-right">Harga/Kg</th>
+                <th class="text-right">Harga/Ton</th>
+                <th>Rincian Timbangan</th>
+                <th class="text-right">Total Kw</th>
+                <th class="text-right">Tonase</th>
+                <th class="text-right">Total Nilai</th>
+                <th>Catatan</th>
+                <th class="text-center">Tindakan</th>
               </tr>
             </thead>
             <tbody id="tbodyRiwayat"></tbody>
           </table>
         </div>
-        <div id="riwayatSummary" class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-600 hidden"></div>
+
+        <div id="riwayatSummary" class="filter-summary hidden"></div>
       </div>
     </section>
 
     <!-- ===================== TAB: GRAFIK ===================== -->
     <section id="tab-grafik" class="tab-content hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="charts-row">
         <div class="card">
-          <h3 class="section-title">📊 Tonase per Pengepul</h3>
+          <h2 class="card-heading">Distribusi Akumulasi Tonase per Pengepul</h2>
+          <p class="card-desc">Komparasi total getah karet yang disetor dalam satuan Ton.</p>
           <div class="chart-container"><canvas id="chartTonase"></canvas></div>
         </div>
         <div class="card">
-          <h3 class="section-title">🏦 Sisa Deposit per Pengepul</h3>
+          <h2 class="card-heading">Status Posisi Saldo Deposit per Pengepul</h2>
+          <p class="card-desc">Perbandingan sisa saldo panjar modal jalan tiap mitra.</p>
           <div class="chart-container"><canvas id="chartDeposit"></canvas></div>
         </div>
-        <div class="card lg:col-span-2">
-          <h3 class="section-title">📈 Tren Setoran Karet Bulanan (Total Kuintal)</h3>
-          <div class="chart-container-wide"><canvas id="chartTren"></canvas></div>
-        </div>
+      </div>
+      <div class="card">
+        <h2 class="card-heading">Tren Bulanan Serapan Getah Karet (Kuintal)</h2>
+        <p class="card-desc">Perkembangan total volume getah yang masuk ke pembukuan per bulan.</p>
+        <div class="chart-container-wide"><canvas id="chartTren"></canvas></div>
       </div>
     </section>
 
   </main>
 
-  <!-- ===== PRINT AREA (hidden from screen, shown only when printing) ===== -->
+  <!-- ===== PRINT AREA CONTAINER (Populated dynamically) ===== -->
   <div id="printArea" style="display:none;"></div>
 
   <!-- ===== TOAST NOTIFICATION ===== -->
-  <div id="toast" class="toast hidden">
+  <div id="toast" class="toast hidden" role="status" aria-live="polite">
     <span id="toastMsg"></span>
   </div>
 
   <!-- ===== FOOTER ===== -->
-  <footer class="mt-10 py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white">
-    SiKaret © 2024 — Sistem Pencatatan Pengepul Karet · Data tersimpan di <strong>LocalStorage</strong>
+  <footer class="app-footer">
+    SiKaret &mdash; Sistem Pembukuan Deposit &amp; Pembelian Karet Pengepul &bull; Data tersimpan aman di peramban lokal (LocalStorage)
   </footer>
 
   <!-- =====================================================
        MODAL: EDIT PENGEPUL
   ===================================================== -->
-  <div id="modalEditPengepul" class="modal-overlay hidden">
+  <div id="modalEditPengepul" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title">✏️ Edit Data Pengepul</h3>
-        <button class="modal-close" onclick="closeModal('modalEditPengepul')">✕</button>
+        <h3 class="modal-title">Perbarui Data Pengepul</h3>
+        <button class="modal-close" onclick="closeModal('modalEditPengepul')" aria-label="Tutup">&times;</button>
       </div>
-      <form id="formEditPengepul" class="space-y-4 mt-4">
+      <form id="formEditPengepul" class="form-grid">
         <input type="hidden" id="editPengepulId" />
         <div class="form-group">
-          <label class="form-label">Nama Pengepul <span class="text-red-500">*</span></label>
+          <label class="form-label" for="editPengepulNama">Nama Pengepul <span>*</span></label>
           <input type="text" id="editPengepulNama" class="form-input" required />
         </div>
         <div class="form-group">
-          <label class="form-label">Asal Daerah <span class="text-red-500">*</span></label>
+          <label class="form-label" for="editPengepulDaerah">Asal Daerah <span>*</span></label>
           <input type="text" id="editPengepulDaerah" class="form-input" required />
         </div>
-        <div class="flex gap-3 pt-2">
-          <button type="submit" class="btn-primary flex-1">💾 Simpan Perubahan</button>
-          <button type="button" class="btn-secondary flex-1" onclick="closeModal('modalEditPengepul')">Batal</button>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Simpan Perubahan</button>
+          <button type="button" class="btn-secondary" onclick="closeModal('modalEditPengepul')">Batal</button>
         </div>
       </form>
     </div>
@@ -447,33 +483,33 @@
   <!-- =====================================================
        MODAL: EDIT DEPOSIT
   ===================================================== -->
-  <div id="modalEditDeposit" class="modal-overlay hidden">
+  <div id="modalEditDeposit" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title">✏️ Edit Transaksi Deposit</h3>
-        <button class="modal-close" onclick="closeModal('modalEditDeposit')">✕</button>
+        <h3 class="modal-title">Perbarui Catatan Deposit</h3>
+        <button class="modal-close" onclick="closeModal('modalEditDeposit')" aria-label="Tutup">&times;</button>
       </div>
-      <form id="formEditDeposit" class="space-y-4 mt-4">
+      <form id="formEditDeposit" class="form-grid">
         <input type="hidden" id="editDepositId" />
         <div class="form-group">
-          <label class="form-label">Pengepul</label>
+          <label class="form-label">Mitra Pengepul</label>
           <input type="text" id="editDepositPengepulNama" class="form-input" disabled />
         </div>
         <div class="form-group">
-          <label class="form-label">Tanggal Transaksi <span class="text-red-500">*</span></label>
+          <label class="form-label" for="editDepositTanggal">Tanggal Transaksi <span>*</span></label>
           <input type="date" id="editDepositTanggal" class="form-input" required />
         </div>
         <div class="form-group">
-          <label class="form-label">Jumlah Deposit (Rp) <span class="text-red-500">*</span></label>
+          <label class="form-label" for="editDepositJumlah">Jumlah Deposit (Rp) <span>*</span></label>
           <input type="number" id="editDepositJumlah" class="form-input" min="1" required />
         </div>
         <div class="form-group">
-          <label class="form-label">Catatan</label>
+          <label class="form-label" for="editDepositCatatan">Keterangan</label>
           <input type="text" id="editDepositCatatan" class="form-input" />
         </div>
-        <div class="flex gap-3 pt-2">
-          <button type="submit" class="btn-primary flex-1">💾 Simpan Perubahan</button>
-          <button type="button" class="btn-secondary flex-1" onclick="closeModal('modalEditDeposit')">Batal</button>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Simpan Perubahan</button>
+          <button type="button" class="btn-secondary" onclick="closeModal('modalEditDeposit')">Batal</button>
         </div>
       </form>
     </div>
@@ -482,59 +518,65 @@
   <!-- =====================================================
        MODAL: EDIT PEMBELIAN
   ===================================================== -->
-  <div id="modalEditPembelian" class="modal-overlay hidden">
+  <div id="modalEditPembelian" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
-        <h3 class="modal-title">✏️ Edit Transaksi Pembelian</h3>
-        <button class="modal-close" onclick="closeModal('modalEditPembelian')">✕</button>
+        <h3 class="modal-title">Perbarui Transaksi Pembelian</h3>
+        <button class="modal-close" onclick="closeModal('modalEditPembelian')" aria-label="Tutup">&times;</button>
       </div>
-      <form id="formEditPembelian" class="space-y-4 mt-4">
+      <form id="formEditPembelian" class="form-grid">
         <input type="hidden" id="editPembelianId" />
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid-two">
           <div class="form-group">
-            <label class="form-label">Tanggal <span class="text-red-500">*</span></label>
+            <label class="form-label" for="editPembelianTanggal">Tanggal <span>*</span></label>
             <input type="date" id="editPembelianTanggal" class="form-input" required />
           </div>
           <div class="form-group">
-            <label class="form-label">Pengepul</label>
+            <label class="form-label">Mitra Pengepul</label>
             <input type="text" id="editPembelianPengepulNama" class="form-input" disabled />
           </div>
+        </div>
+
+        <div class="grid-two">
           <div class="form-group">
-            <label class="form-label">Harga Beli (Rp/Kg) <span class="text-red-500">*</span></label>
+            <label class="form-label" for="editPembelianHarga">Harga Beli Bersih (Rp/Kg) <span>*</span></label>
             <input type="number" id="editPembelianHarga" class="form-input" min="1" step="1"
                    oninput="hitungEditTimbangan()" required />
           </div>
           <div class="form-group">
-            <label class="form-label">Catatan</label>
+            <label class="form-label" for="editPembelianCatatan">Catatan Transaksi</label>
             <input type="text" id="editPembelianCatatan" class="form-input" />
           </div>
         </div>
-        <!-- Timbangan editor -->
+
+        <!-- Editor Timbangan -->
         <div class="form-group">
-          <div class="flex items-center justify-between mb-2">
-            <label class="form-label mb-0">Timbangan Bertahap (Kuintal) <span class="text-red-500">*</span></label>
-            <button type="button" onclick="addEditTimbanganRow()" class="btn-secondary text-xs px-3 py-1">+ Tambah</button>
+          <div class="timbangan-header">
+            <label class="form-label">Timbangan Bertahap per Angkatan (Kw) <span>*</span></label>
+            <button type="button" onclick="addEditTimbanganRow()" class="btn-secondary">+ Tambah Angkatan</button>
           </div>
-          <div id="editTimbanganContainer" class="space-y-2"></div>
+          <div id="editTimbanganContainer"></div>
         </div>
-        <!-- Preview kalkulasi -->
-        <div class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm space-y-1">
-          <div class="flex justify-between">
-            <span class="text-slate-600">Total Kuintal:</span>
-            <span class="font-bold text-green-700" id="editPreviewKuintal">0 Kw</span>
+
+        <!-- Preview Kalkulasi Modal -->
+        <div class="timbangan-summary">
+          <div class="timbangan-summary-row">
+            <span class="timbangan-summary-label">Total Berat:</span>
+            <span class="timbangan-summary-val" id="editPreviewKuintal">0 Kw</span>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-600">Total Tonase:</span>
-            <span class="font-bold text-green-700" id="editPreviewTonase">0.000 Ton</span>
+          <div class="timbangan-summary-row">
+            <span class="timbangan-summary-label">Total Tonase:</span>
+            <span class="timbangan-summary-val" id="editPreviewTonase">0.000 Ton</span>
           </div>
-          <div class="flex justify-between pt-1 border-t border-green-300">
-            <span class="font-medium text-slate-700">Total Harga:</span>
-            <span class="font-bold text-emerald-700 text-base" id="editPreviewHarga">Rp 0</span>
+          <div class="timbangan-summary-row total-row">
+            <span class="timbangan-summary-label">Total Nilai Pembelian:</span>
+            <span class="timbangan-summary-val text-accent" id="editPreviewHarga">Rp 0</span>
           </div>
         </div>
-        <div class="flex gap-3 pt-2">
-          <button type="submit" class="btn-primary flex-1">💾 Simpan Perubahan</button>
-          <button type="button" class="btn-secondary flex-1" onclick="closeModal('modalEditPembelian')">Batal</button>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Simpan Perubahan</button>
+          <button type="button" class="btn-secondary" onclick="closeModal('modalEditPembelian')">Batal</button>
         </div>
       </form>
     </div>
@@ -543,22 +585,23 @@
   <!-- =====================================================
        MODAL: KONFIRMASI HAPUS
   ===================================================== -->
-  <div id="modalKonfirmHapus" class="modal-overlay hidden">
+  <div id="modalKonfirmHapus" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
-        <h3 class="modal-title text-red-600">🗑️ Konfirmasi Hapus</h3>
-        <button class="modal-close" onclick="closeModal('modalKonfirmHapus')">✕</button>
+        <h3 class="modal-title text-danger">Konfirmasi Hapus Data</h3>
+        <button class="modal-close" onclick="closeModal('modalKonfirmHapus')" aria-label="Tutup">&times;</button>
       </div>
-      <div class="mt-4">
-        <p id="konfirmHapusMsg" class="text-sm text-slate-600 mb-5"></p>
-        <div class="flex gap-3">
-          <button id="btnKonfirmHapusOk" class="btn-primary flex-1 bg-red-600 hover:bg-red-700">🗑️ Ya, Hapus</button>
-          <button class="btn-secondary flex-1" onclick="closeModal('modalKonfirmHapus')">Batal</button>
+      <div>
+        <p id="konfirmHapusMsg" class="card-desc" style="margin-bottom: 1.25rem;"></p>
+        <div class="modal-actions">
+          <button id="btnKonfirmHapusOk" class="btn-danger">Hapus Permanen</button>
+          <button type="button" class="btn-secondary" onclick="closeModal('modalKonfirmHapus')">Batal</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Application Logic -->
   <script src="script.js"></script>
 </body>
 </html>
