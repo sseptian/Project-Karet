@@ -1,0 +1,54 @@
+{
+  "pengepul": [
+    { "id": "P001", "nama": "Pak Sunaryo", "daerah": "Talang Ubi", "totalDeposit": 50000000, "sisaDeposit": 12350000, "totalTonase": 37.6, "totalNilaiTransaksi": 37650000 },
+    { "id": "P002", "nama": "Bu Rohani",   "daerah": "Prabumulih",  "totalDeposit": 30000000, "sisaDeposit": 8420000,  "totalTonase": 21.58, "totalNilaiTransaksi": 21580000 },
+    { "id": "P003", "nama": "Pak Darmawan","daerah": "Muara Enim",  "totalDeposit": 45000000, "sisaDeposit": -1250000, "totalTonase": 46.25, "totalNilaiTransaksi": 46250000 },
+    { "id": "P004", "nama": "Ibu Sarikem", "daerah": "Gelumbang",   "totalDeposit": 20000000, "sisaDeposit": 4750000,  "totalTonase": 15.25, "totalNilaiTransaksi": 15250000 },
+    { "id": "P005", "nama": "Pak Warsito", "daerah": "Talang Ubi",  "totalDeposit": 35000000, "sisaDeposit": 6900000,  "totalTonase": 28.1,  "totalNilaiTransaksi": 28100000 }
+  ],
+  "depositTransactions": [
+    { "id": "D001", "pengepulId": "P001", "tanggal": "2024-08-05", "jumlah": 25000000, "catatan": "Deposit awal" },
+    { "id": "D002", "pengepulId": "P002", "tanggal": "2024-08-07", "jumlah": 30000000, "catatan": "Deposit awal" },
+    { "id": "D003", "pengepulId": "P001", "tanggal": "2024-09-01", "jumlah": 25000000, "catatan": "Top-up deposit September" },
+    { "id": "D004", "pengepulId": "P003", "tanggal": "2024-09-03", "jumlah": 45000000, "catatan": "Deposit awal" },
+    { "id": "D005", "pengepulId": "P004", "tanggal": "2024-09-10", "jumlah": 20000000, "catatan": "Deposit awal" },
+    { "id": "D006", "pengepulId": "P005", "tanggal": "2024-09-15", "jumlah": 35000000, "catatan": "Deposit awal" }
+  ],
+  "pembelianTransactions": [
+    {
+      "id": "T001", "pengepulId": "P001", "tanggal": "2024-09-10",
+      "hargaBeli": 1000, "hargaPerTon": 1000000,
+      "timbangan": [8.5, 9.2, 7.8, 8.1, 4.0],
+      "totalKuintal": 37.6, "totalTonase": 3.76,
+      "totalHarga": 37600000, "catatan": "Setoran pertama September"
+    },
+    {
+      "id": "T002", "pengepulId": "P002", "tanggal": "2024-09-12",
+      "hargaBeli": 1000, "hargaPerTon": 1000000,
+      "timbangan": [7.5, 8.3, 5.78],
+      "totalKuintal": 21.58, "totalTonase": 2.158,
+      "totalHarga": 21580000, "catatan": "Setoran September"
+    },
+    {
+      "id": "T003", "pengepulId": "P003", "tanggal": "2024-09-14",
+      "hargaBeli": 1000, "hargaPerTon": 1000000,
+      "timbangan": [9.0, 8.75, 9.5, 9.0, 10.0],
+      "totalKuintal": 46.25, "totalTonase": 4.625,
+      "totalHarga": 46250000, "catatan": "Setoran besar September"
+    },
+    {
+      "id": "T004", "pengepulId": "P004", "tanggal": "2024-09-18",
+      "hargaBeli": 1000, "hargaPerTon": 1000000,
+      "timbangan": [7.5, 7.75],
+      "totalKuintal": 15.25, "totalTonase": 1.525,
+      "totalHarga": 15250000, "catatan": "Setoran September"
+    },
+    {
+      "id": "T005", "pengepulId": "P005", "tanggal": "2024-09-20",
+      "hargaBeli": 1000, "hargaPerTon": 1000000,
+      "timbangan": [9.1, 9.5, 9.5],
+      "totalKuintal": 28.1, "totalTonase": 2.81,
+      "totalHarga": 28100000, "catatan": "Setoran September"
+    }
+  ]
+}
