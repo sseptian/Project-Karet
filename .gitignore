@@ -1,0 +1,5 @@
+# Konfigurasi privat Firebase
+firebase-config.js
+
+# Berkas cache & deploy internal
+.firebase/

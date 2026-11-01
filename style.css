@@ -1018,28 +1018,273 @@ body {
   }
 }
 
+/* ===== PENJUALAN PABRIK & BIAYA JALAN ===== */
+.biaya-item-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.biaya-item-row input[type="text"] {
+  flex: 2;
+}
+.biaya-item-row input[type="number"] {
+  flex: 1.5;
+}
+.biaya-item-row .btn-remove-biaya {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--danger-text);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+.biaya-item-row .btn-remove-biaya:hover {
+  background-color: var(--danger-bg);
+}
+
+/* Modal Box Large */
+.modal-box-lg {
+  max-width: 720px;
+}
+
+/* Surat Jalan Document Layout (Print & Preview) */
+.sj-print-container {
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+  color: #111827;
+  padding: 10px;
+}
+.sj-kop {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px double #111827;
+  margin-bottom: 1rem;
+}
+.sj-logo {
+  width: 85px;
+  height: 85px;
+  object-fit: contain;
+}
+.sj-kop-text {
+  flex: 1;
+}
+.sj-company-name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin: 0 0 2px 0;
+  color: #111827;
+}
+.sj-company-desc {
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 2px 0;
+}
+.sj-company-addr {
+  font-size: 10px;
+  color: #6b7280;
+  margin: 0;
+}
+.sj-title-box {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+.sj-doc-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 4px 0;
+}
+.sj-doc-no {
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+}
+.sj-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.sj-meta-box {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+.sj-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 11px;
+}
+.sj-table th, .sj-table td {
+  border: 1px solid #374151;
+  padding: 6px 8px;
+}
+.sj-table th {
+  background-color: #f3f4f6;
+  font-weight: 700;
+}
+.sj-notes {
+  font-size: 10px;
+  color: #4b5563;
+  line-height: 1.4;
+  margin: 1rem 0;
+}
+.sj-signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 11px;
+}
+.sj-sig-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 90px;
+}
+.sj-sig-line {
+  border-bottom: 1px solid #111827;
+  margin: 0 auto;
+  width: 80%;
+}
+
+/* ===== SYSTEM MODE SELECTOR (PEMBELIAN vs PENJUALAN) ===== */
+.system-mode-bar {
+  background-color: #0f172a;
+  border-bottom: 2px solid #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.mode-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.mode-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.85rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mode-btn:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.04);
+}
+.mode-btn.active {
+  color: #ffffff;
+  border-bottom-color: var(--accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Transaksi Timbangan Selector Box for Direct Loading */
+.timbangan-selector-box {
+  background: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+.timbangan-selector-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  margin-top: 0.5rem;
+}
+.timbangan-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.timbangan-pick-item:last-child {
+  border-bottom: none;
+}
+.timbangan-pick-item:hover {
+  background: var(--surface-secondary);
+}
+.timbangan-pick-item input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  cursor: pointer;
+}
+.timbangan-pick-info {
+  flex: 1;
+}
+.timbangan-pick-qty {
+  text-align: right;
+  font-weight: 600;
+  color: var(--ink);
+}
+
 /* ===== PRINT STYLESHEET ===== */
 @media print {
-  header, nav, footer, #toast, .tab-btn, .btn-action, .btn-primary, .btn-secondary,
-  .btn-table-edit, .btn-table-delete, .filter-box, .filter-row, #modalEditPengepul,
-  #modalEditDeposit, #modalEditPembelian, #modalKonfirmHapus {
+  html, body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Sembunyikan seluruh struktur website (header, nav, tabs, forms, modals) */
+  body > *:not(#printArea) {
     display: none !important;
   }
   
-  body, html {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
-  
+  /* Khusus tampilkan #printArea satu halaman penuh */
   #printArea {
     display: block !important;
-    position: static !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     width: 100% !important;
+    margin: 0 !important;
+    padding: 10mm 12mm !important;
     background: #ffffff !important;
-    padding: 0 !important;
+    visibility: visible !important;
+    z-index: 999999 !important;
   }
   
   #printArea * {
     visibility: visible !important;
+  }
+
+  @page {
+    margin: 8mm;
+    size: A4 portrait;
   }
 }
