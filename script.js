@@ -346,7 +346,19 @@ function formatDecimal(n, maxDigits = 2) {
 /** Format angka dengan pemisah ribuan titik (500000 -> 500.000) */
 function formatNumberWithDots(val) {
   if (val === null || val === undefined || val === '') return '';
-  const clean = String(val).replace(/\D/g, '');
+  if (typeof val === 'number') {
+    if (isNaN(val)) return '';
+    return Math.round(val).toLocaleString('id-ID');
+  }
+  let str = String(val).trim();
+  if (!str) return '';
+  if (str.includes('.') && !str.includes(',')) {
+    const parts = str.split('.');
+    if (parts.length === 2 && parts[1].length !== 3) {
+      str = parts[0];
+    }
+  }
+  const clean = str.replace(/\D/g, '');
   if (!clean) return '';
   return parseInt(clean, 10).toLocaleString('id-ID');
 }
@@ -355,7 +367,15 @@ function formatNumberWithDots(val) {
 function parseRupiahInput(val) {
   if (val === null || val === undefined || val === '') return 0;
   if (typeof val === 'number') return isNaN(val) ? 0 : Math.round(val);
-  const clean = String(val).replace(/\D/g, '');
+  let str = String(val).trim();
+  if (!str) return 0;
+  if (str.includes('.') && !str.includes(',')) {
+    const parts = str.split('.');
+    if (parts.length === 2 && parts[1].length !== 3) {
+      str = parts[0];
+    }
+  }
+  const clean = str.replace(/\D/g, '');
   return clean ? parseInt(clean, 10) : 0;
 }
 
@@ -401,13 +421,22 @@ function convertFromKg(nilaiKg, satuanTarget) {
 
 /** Update teks pembantu konversi satuan berat (Kg / Kw / Ton) */
 function updateWeightHint(inputEl, selectEl, hintEl) {
-  if (!inputEl || !selectEl || !hintEl) return;
-  const val = parseFloat(inputEl.value) || 0;
-  const unit = selectEl.value;
-  if (val <= 0) {
+  if (!hintEl) return;
+  if (!inputEl || !selectEl) {
     hintEl.textContent = '';
     return;
   }
+  const rawText = String(inputEl.value || '').trim();
+  if (!rawText) {
+    hintEl.textContent = '';
+    return;
+  }
+  const val = parseFloat(rawText);
+  if (isNaN(val) || val <= 0) {
+    hintEl.textContent = '';
+    return;
+  }
+  const unit = selectEl.value;
   const kg = convertToKg(val, unit);
   const kw = kg / 100;
   const ton = kg / 1000;
@@ -2349,6 +2378,11 @@ function initPenjualanPabrik() {
     toggleTimbang.addEventListener('change', () => {
       if (toggleTimbang.checked) {
         timbangFields.classList.remove('hidden');
+        updateWeightHint(
+          document.getElementById('sjBeratPabrik'),
+          document.getElementById('sjSatuanPabrik'),
+          document.getElementById('hintBeratPabrik')
+        );
         updatePenjualanLivePreview();
       } else {
         timbangFields.classList.add('hidden');
@@ -2440,6 +2474,10 @@ function initPenjualanPabrik() {
         if (toggle) toggle.checked = false;
         const fields = document.getElementById('timbangPabrikFields');
         if (fields) fields.classList.add('hidden');
+        const hGudang = document.getElementById('hintBeratGudang');
+        if (hGudang) hGudang.textContent = '';
+        const hPabrik = document.getElementById('hintBeratPabrik');
+        if (hPabrik) hPabrik.textContent = '';
         populatePembelianTimbanganSelector();
       }, 50);
     });
@@ -2543,6 +2581,9 @@ function updateTimbanganPickerSummary() {
     totalModal += parseFloat(chk.dataset.modal) || 0;
     if (chk.dataset.pengepul) namaPengepulSet.add(chk.dataset.pengepul);
   });
+
+  totalKg = Math.round(totalKg * 1000) / 1000;
+  totalModal = Math.round(totalModal);
 
   const totalTon = totalKg / 1000;
   const avgPerKg = totalKg > 0 ? Math.round(totalModal / totalKg) : 0;
@@ -2660,7 +2701,7 @@ function collectBiayaOperasional() {
   const rows = document.querySelectorAll('#biayaRowsContainer .biaya-item-row');
   rows.forEach(r => {
     const jenis = r.querySelector('.biaya-jenis').value.trim();
-    const nominal = parseFloat(r.querySelector('.biaya-nominal').value) || 0;
+    const nominal = parseRupiahInput(r.querySelector('.biaya-nominal').value);
     const catatan = r.querySelector('.biaya-catatan').value.trim();
     if (jenis || nominal > 0) {
       list.push({ jenis: jenis || 'Biaya Jalan', nominal, catatan });
@@ -2792,6 +2833,10 @@ function savePenjualanPabrik(cetakSetelahSimpan = false) {
   updateTotalBiayaJalan();
   document.getElementById('toggleTimbangPabrik').checked = false;
   document.getElementById('timbangPabrikFields').classList.add('hidden');
+  const hGudang = document.getElementById('hintBeratGudang');
+  if (hGudang) hGudang.textContent = '';
+  const hPabrik = document.getElementById('hintBeratPabrik');
+  if (hPabrik) hPabrik.textContent = '';
   populatePembelianTimbanganSelector();
 }
 
