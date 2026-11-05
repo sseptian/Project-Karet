@@ -23,12 +23,19 @@
 </head>
 <body>
 
-  <!-- ===== HEADER ===== -->
+    <!-- ===== HEADER ===== -->
   <header class="app-header">
     <div class="header-container">
-      <div class="brand-group">
-        <h1 class="brand-title">SIKARET</h1>
-        <p class="brand-subtitle">Pembukuan Deposit &amp; Timbangan Karet Pengepul</p>
+      <div class="header-brand-wrap">
+        <button type="button" id="btnHamburger" class="hamburger-btn" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="navDrawer">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+        <div class="brand-group">
+          <h1 class="brand-title">SIKARET</h1>
+          <p class="brand-subtitle">Pembukuan Deposit &amp; Timbangan Karet</p>
+        </div>
       </div>
       <div class="header-meta">
         <span id="headerDate" class="header-date"></span>
@@ -37,29 +44,93 @@
     </div>
   </header>
 
-  <!-- ===== PRIMARY SYSTEM SELECTOR (PEMBELIAN vs PENJUALAN) ===== -->
+  <!-- ===== BACKDROP & SIDEBAR DRAWER (MOBILE) ===== -->
+  <div id="drawerBackdrop" class="drawer-backdrop hidden" aria-hidden="true"></div>
+
+  <aside id="navDrawer" class="nav-drawer" aria-label="Menu Navigasi Utama" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <span class="drawer-title">SIKARET</span>
+        <span class="drawer-subtitle">Navigasi Sistem Operasional</span>
+      </div>
+      <button type="button" id="btnCloseDrawer" class="drawer-close-btn" aria-label="Tutup navigasi">&times;</button>
+    </div>
+
+    <div class="drawer-content">
+      <div class="drawer-section-label">PILIH HALAMAN UTAMA</div>
+      <div class="drawer-mode-switch">
+        <button type="button" class="drawer-mode-btn active" data-page="pembelian" id="drawerModePembelian">
+          Pembelian Karet
+        </button>
+        <button type="button" class="drawer-mode-btn" data-page="penjualan" id="drawerModePenjualan">
+          Penjualan Pabrik
+        </button>
+      </div>
+
+      <!-- Navigasi Menu Pembelian -->
+      <div id="drawerMenuPembelian" class="drawer-menu-group">
+        <div class="drawer-section-label">MENU HALAMAN PEMBELIAN</div>
+        <nav class="drawer-nav">
+          <button type="button" class="drawer-link active" data-page="pembelian" data-tab="dashboard">Ringkasan</button>
+          <button type="button" class="drawer-link" data-page="pembelian" data-tab="pengepul">Daftar Pengepul</button>
+          <button type="button" class="drawer-link" data-page="pembelian" data-tab="deposit">Buku Deposit</button>
+          <button type="button" class="drawer-link" data-page="pembelian" data-tab="pembelian">Catat Timbangan</button>
+          <button type="button" class="drawer-link" data-page="pembelian" data-tab="rekap">Rekapitulasi Saldo</button>
+          <button type="button" class="drawer-link" data-page="pembelian" data-tab="riwayat">Riwayat Transaksi</button>
+          <button type="button" class="drawer-link" data-page="pembelian" data-tab="grafik">Analisis Grafik</button>
+        </nav>
+      </div>
+
+      <!-- Navigasi Menu Penjualan -->
+      <div id="drawerMenuPenjualan" class="drawer-menu-group hidden">
+        <div class="drawer-section-label">MENU HALAMAN PENJUALAN (CV MANDIRI PUTRA)</div>
+        <nav class="drawer-nav">
+          <button type="button" class="drawer-link" data-page="penjualan" data-tab="penjualan-kpi">Ringkasan Penjualan</button>
+          <button type="button" class="drawer-link" data-page="penjualan" data-tab="penjualan-form">Muat Truk &amp; Surat Jalan</button>
+          <button type="button" class="drawer-link" data-page="penjualan" data-tab="penjualan-tabel">Riwayat Pengiriman Pabrik</button>
+        </nav>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <span class="drawer-footer-text">SiKaret &bull; Sistem Pembukuan Multiplatform</span>
+    </div>
+  </aside>
+
+  <!-- ===== PRIMARY SYSTEM SELECTOR (PEMBELIAN vs PENJUALAN - DESKTOP) ===== -->
   <div class="system-mode-bar">
     <div class="mode-container">
-      <button type="button" class="mode-btn active" data-system="pembelian" id="btnModePembelian">
-        1. Pembelian Karet (Petani &amp; Pengepul)
+      <button type="button" class="mode-btn active" data-page="pembelian" id="btnModePembelian">
+        1. Halaman Pembelian (Petani &amp; Pengepul)
       </button>
-      <button type="button" class="mode-btn" data-system="penjualan" id="btnModePenjualan">
-        2. Penjualan Pabrik (CV Mandiri Putra)
+      <button type="button" class="mode-btn" data-page="penjualan" id="btnModePenjualan">
+        2. Halaman Penjualan (CV Mandiri Putra)
       </button>
     </div>
   </div>
 
-  <!-- ===== SUB-NAVIGATION TABS (MODUL PEMBELIAN) ===== -->
-  <nav class="app-nav" id="subnavPembelian">
+  <!-- ===== SUB-NAVIGATION TABS (HALAMAN PEMBELIAN - DESKTOP) ===== -->
+  <nav class="app-nav" id="subnavPembelian" aria-label="Navigasi Halaman Pembelian">
     <div class="nav-container">
       <div class="tabs-list" role="tablist">
-        <button class="tab-btn active" data-tab="dashboard" role="tab">Ringkasan</button>
-        <button class="tab-btn" data-tab="pengepul" role="tab">Daftar Pengepul</button>
-        <button class="tab-btn" data-tab="deposit" role="tab">Buku Deposit</button>
-        <button class="tab-btn" data-tab="pembelian" role="tab">Catat Timbangan</button>
-        <button class="tab-btn" data-tab="rekap" role="tab">Rekapitulasi Saldo</button>
-        <button class="tab-btn" data-tab="riwayat" role="tab">Riwayat Transaksi</button>
-        <button class="tab-btn" data-tab="grafik" role="tab">Analisis Grafik</button>
+        <button type="button" class="tab-btn active" data-page="pembelian" data-tab="dashboard" role="tab">Ringkasan</button>
+        <button type="button" class="tab-btn" data-page="pembelian" data-tab="pengepul" role="tab">Daftar Pengepul</button>
+        <button type="button" class="tab-btn" data-page="pembelian" data-tab="deposit" role="tab">Buku Deposit</button>
+        <button type="button" class="tab-btn" data-page="pembelian" data-tab="pembelian" role="tab">Catat Timbangan</button>
+        <button type="button" class="tab-btn" data-page="pembelian" data-tab="rekap" role="tab">Rekapitulasi Saldo</button>
+        <button type="button" class="tab-btn" data-page="pembelian" data-tab="riwayat" role="tab">Riwayat Transaksi</button>
+        <button type="button" class="tab-btn" data-page="pembelian" data-tab="grafik" role="tab">Analisis Grafik</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== SUB-NAVIGATION TABS (HALAMAN PENJUALAN - DESKTOP) ===== -->
+  <nav class="app-nav hidden" id="subnavPenjualan" aria-label="Navigasi Halaman Penjualan">
+    <div class="nav-container">
+      <div class="tabs-list" role="tablist">
+        <button type="button" class="tab-btn active" data-page="penjualan" data-tab="penjualan-kpi" role="tab">Ringkasan Penjualan</button>
+        <button type="button" class="tab-btn" data-page="penjualan" data-tab="penjualan-form" role="tab">Muat Truk &amp; Surat Jalan</button>
+        <button type="button" class="tab-btn" data-page="penjualan" data-tab="penjualan-tabel" role="tab">Riwayat Pengiriman Pabrik</button>
       </div>
     </div>
   </nav>
@@ -67,7 +138,11 @@
   <!-- ===== MAIN CONTENT ===== -->
   <main class="main-container">
 
-    <!-- ===================== TAB: DASHBOARD ===================== -->
+    <!-- =========================================================
+         HALAMAN 1: PEMBELIAN KARET (PETANI & PENGEPUL)
+         ========================================================= -->
+    <div id="page-pembelian" class="app-page">
+      <!-- ===================== TAB: DASHBOARD ===================== -->
     <section id="tab-dashboard" class="tab-content">
 
       <!-- Ledger Summary Strip -->
@@ -359,10 +434,143 @@
       </div>
     </section>
 
-    <!-- ===================== TAB: PENJUALAN PABRIK ===================== -->
-    <section id="tab-penjualan" class="tab-content hidden">
+    <!-- ===================== TAB: REKAP ===================== -->
+    <section id="tab-rekap" class="tab-content hidden">
+      <div class="card">
+        <div class="card-header-flex">
+          <div>
+            <h2 class="card-heading">Rekapitulasi Saldo &amp; Tonase Pengepul</h2>
+            <p class="card-desc">Posisi buku kas akumulasi deposit, volume serapan getah, dan saldo berjalan.</p>
+          </div>
+          <div class="filter-box" style="margin-bottom:0; padding:0.5rem;">
+            <input type="text" id="filterRekapNama" class="form-input" style="width: 170px;" placeholder="Cari nama..." />
+            <input type="text" id="filterRekapDaerah" class="form-input" style="width: 150px;" placeholder="Filter daerah..." />
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="tableRekap">
+            <thead>
+              <tr>
+                <th>Pengepul</th>
+                <th>Daerah</th>
+                <th class="text-right">Total Deposit</th>
+                <th class="text-right">Total Tonase</th>
+                <th class="text-right">Nilai Pembelian</th>
+                <th class="text-right">Sisa Deposit</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRekap"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-      <!-- KPI Strip Penjualan -->
+    <!-- ===================== TAB: RIWAYAT ===================== -->
+    <section id="tab-riwayat" class="tab-content hidden">
+      <div class="card">
+        <div class="card-header-flex">
+          <div>
+            <h2 class="card-heading">Buku Arsip Transaksi Pembelian</h2>
+            <p class="card-desc">Catatan lengkap seluruh transaksi timbangan karet beserta rincian angkatan.</p>
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button id="btnPrintRiwayat" class="btn-action">Cetak Laporan (Filter)</button>
+            <button id="btnPrintRiwayatAll" class="btn-action">Cetak Semua Riwayat</button>
+            <button id="btnPrintRekap" class="btn-action">Cetak Rekap Pengepul</button>
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="filter-box">
+          <div class="filter-group">
+            <label class="filter-label" for="filterNama">Nama Pengepul</label>
+            <input type="text" id="filterNama" class="form-input" placeholder="Cari nama..." />
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="filterDaerah">Daerah Asal</label>
+            <input type="text" id="filterDaerah" class="form-input" placeholder="Filter daerah..." />
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="filterDariTgl">Dari Tanggal</label>
+            <input type="date" id="filterDariTgl" class="form-input" />
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="filterSampaiTgl">Sampai Tanggal</label>
+            <input type="date" id="filterSampaiTgl" class="form-input" />
+          </div>
+          <button id="btnResetFilter" class="btn-secondary" style="height:38px;">Reset Filter</button>
+        </div>
+
+        <!-- Table Data -->
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Pengepul</th>
+                <th>Daerah</th>
+                <th class="text-right">Harga/Kg</th>
+                <th class="text-right">Harga/Ton</th>
+                <th>Rincian Timbangan</th>
+                <th class="text-right">Total Kw</th>
+                <th class="text-right">Tonase</th>
+                <th class="text-right">Total Nilai</th>
+                <th>Catatan</th>
+                <th class="text-center">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRiwayat"></tbody>
+          </table>
+        </div>
+
+        <div id="riwayatSummary" class="filter-summary hidden"></div>
+      </div>
+    </section>
+
+    <!-- ===================== TAB: GRAFIK ===================== -->
+    <section id="tab-grafik" class="tab-content hidden">
+      <div class="charts-row">
+        <div class="card">
+          <h2 class="card-heading">Distribusi Akumulasi Tonase per Pengepul</h2>
+          <p class="card-desc">Komparasi total getah karet yang disetor dalam satuan Ton.</p>
+          <div class="chart-container"><canvas id="chartTonase"></canvas></div>
+        </div>
+        <div class="card">
+          <h2 class="card-heading">Status Posisi Saldo Deposit per Pengepul</h2>
+          <p class="card-desc">Perbandingan sisa saldo panjar modal jalan tiap mitra.</p>
+          <div class="chart-container"><canvas id="chartDeposit"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 class="card-heading">Tren Bulanan Serapan Getah Karet (Kuintal)</h2>
+        <p class="card-desc">Perkembangan total volume getah yang masuk ke pembukuan per bulan.</p>
+        <div class="chart-container-wide"><canvas id="chartTren"></canvas></div>
+      </div>
+    </section>
+    </div> <!-- /#page-pembelian -->
+
+    <!-- =========================================================
+         HALAMAN 2: PENJUALAN PABRIK (CV MANDIRI PUTRA)
+         ========================================================= -->
+    <div id="page-penjualan" class="app-page hidden">
+
+      <!-- SUBTAB 1: RINGKASAN PENJUALAN & KPI -->
+      <section id="tab-penjualan-kpi" class="tab-content">
+        <div class="card" style="margin-bottom: 1.25rem;">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-heading">Ringkasan Operasional Penjualan Pabrik</h2>
+              <p class="card-desc">CV Mandiri Putra &mdash; Ringkasan volume muatan armada truk, omzet penjualan, dan kalkulasi laba operasional.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button type="button" class="btn-primary" onclick="navigateTo('penjualan', 'penjualan-form')">+ Muat Truk Baru</button>
+              <button type="button" class="btn-secondary" onclick="navigateTo('penjualan', 'penjualan-tabel')">Lihat Riwayat Pengiriman</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Strip Penjualan -->
       <div class="ledger-strip">
         <div class="ledger-item">
           <span class="ledger-label">Total Pengiriman Truk</span>
@@ -393,6 +601,175 @@
 
       <div class="grid-two">
 
+        <!-- Form Pengiriman & Surat Jalan Baru -->
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-heading">Pengiriman &amp; Surat Jalan Baru</h2>
+              <p class="card-desc">CV Mandiri Putra &mdash; Pengiriman getah karet ke pabrik pengolahan.</p>
+            </div>
+            <div>
+              <button type="button" class="btn-secondary" onclick="navigateTo('penjualan', 'penjualan-tabel')">Lihat Riwayat Pengiriman</button>
+            </div>
+          </div>
+
+          <form id="formPenjualanPabrik" class="form-grid">
+
+            <!-- Integrasi Langsung: Pilih Setoran Timbangan Pengepul untuk Truk Ini -->
+            <div class="timbangan-selector-box">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                <label class="form-label" style="margin: 0; font-weight: 700; color: var(--ink);">
+                  Pilih Setoran Timbangan Pengepul (Muat Langsung ke Truk)
+                </label>
+                <span style="font-size: 0.75rem; color: var(--muted);">Gabung beberapa pengepul ke 1 truk</span>
+              </div>
+              <p class="card-desc" style="font-size: 0.75rem; margin-bottom: 0.5rem;">
+                Centang setoran getah dari pengepul di bawah. Berat muatan truk dan total modal beli (HPP) otomatis terisi tanpa perlu hitung manual.
+              </p>
+              <div id="pembelianTimbanganSelector" class="timbangan-selector-list">
+                <!-- Diisi dinamis oleh script.js -->
+              </div>
+              <div id="pembelianSelectedSummary" style="display: none; background: #e0f2fe; border: 1px solid #bae6fd; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); margin-top: 0.5rem; font-size: 0.8rem; color: #0369a1;">
+              </div>
+            </div>
+
+            <!-- Langkah 1: Surat Jalan & Truk -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="sjNomor">Nomor Surat Jalan <span>*</span></label>
+                <input type="text" id="sjNomor" class="form-input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sjTanggal">Tanggal Muat / Kirim <span>*</span></label>
+                <input type="date" id="sjTanggal" class="form-input" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="sjPabrik">Nama Pabrik Tujuan <span>*</span></label>
+              <input type="text" id="sjPabrik" class="form-input" list="listPabrikLangganan" placeholder="Contoh: PT Aneka Bumi Pratama" required />
+              <datalist id="listPabrikLangganan">
+                <option value="PT Aneka Bumi Pratama" />
+                <option value="PT Remco Rubber Factory" />
+                <option value="PT Hok Tong" />
+                <option value="PT Kirana Megatara" />
+                <option value="PT Shamrock Manufacturing Corpora" />
+              </datalist>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="sjNoPolisi">No. Polisi Truk <span>*</span></label>
+                <input type="text" id="sjNoPolisi" class="form-input" placeholder="Contoh: BG 8421 UQ" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sjNamaSopir">Nama Sopir / Pengemudi <span>*</span></label>
+                <input type="text" id="sjNamaSopir" class="form-input" placeholder="Contoh: Pak Bambang" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="sjBeratGudang">Total Berat Muat Truk (Kg) <span>*</span></label>
+                <input type="number" id="sjBeratGudang" class="form-input" step="0.1" min="1" placeholder="Otomatis dari pilihan timbangan atau ketik manual" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sjCatatanMuatan">Catatan Muatan</label>
+                <input type="text" id="sjCatatanMuatan" class="form-input" placeholder="Contoh: Karet Slab / Lum Mangkok" />
+              </div>
+            </div>
+
+            <!-- Langkah 2: Rincian Biaya Operasional Jalan -->
+            <div class="form-group" style="margin-top: 0.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div>
+                  <label class="form-label" style="margin: 0; font-weight: 600;">Rincian Biaya Jalan (Internal)</label>
+                  <span class="card-desc" style="font-size: 0.75rem;">Hanya dicatat untuk pembukuan, tidak tercantum di surat jalan.</span>
+                </div>
+                <button type="button" class="btn-secondary" id="btnAddBiayaRow" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">+ Tambah Biaya</button>
+              </div>
+              <div id="biayaRowsContainer"></div>
+              <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface-secondary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); margin-top: 0.5rem;">
+                <span style="font-size: 0.85rem; font-weight: 500;">Total Biaya Operasional Jalan:</span>
+                <span id="labelTotalBiayaJalan" style="font-weight: 700; color: var(--danger-text);">Rp 0</span>
+              </div>
+            </div>
+
+            <!-- Langkah 3: Realisasi Timbang Pabrik & Penjualan (Toggle Optional) -->
+            <div class="form-group" style="margin-top: 0.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                <input type="checkbox" id="toggleTimbangPabrik" style="width: 1.1rem; height: 1.1rem;" />
+                Truk sudah selesai ditimbang di pabrik (isi hasil penjualan sekarang)
+              </label>
+
+              <div id="timbangPabrikFields" class="hidden" style="margin-top: 0.75rem;">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="sjBeratPabrik">Berat Bersih Timbang Pabrik (Kg)</label>
+                    <input type="number" id="sjBeratPabrik" class="form-input" step="0.1" min="0" placeholder="Contoh: 8350" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="sjHargaJual">Harga Jual Pabrik (Rp/Kg)</label>
+                    <input type="number" id="sjHargaJual" class="form-input" step="100" min="0" placeholder="Contoh: 13500" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label class="form-label" for="sjModalGetah">Total Modal Beli Getah (HPP Muatan dalam Rp)</label>
+                    <button type="button" id="btnPakaiHppOtomatis" class="btn-secondary" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;" title="Hitung modal berdasarkan harga beli rata-rata gudang">Gunakan Rata-rata Gudang</button>
+                  </div>
+                  <span class="card-desc" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Total nilai rupiah modal beli getah yang dimuat ke truk ini (otomatis dari pilihan di atas).</span>
+                  <input type="number" id="sjModalGetah" class="form-input" step="1000" min="0" placeholder="Contoh: 87280000" />
+                </div>
+
+                <!-- Live Preview Hasil Penjualan -->
+                <div class="timbangan-summary" style="margin-top: 0.75rem;">
+                  <div class="timbangan-summary-row">
+                    <span class="timbangan-summary-label">Susut Muat Jalan:</span>
+                    <span class="timbangan-summary-val" id="previewSusut">0 Kg (0.00%)</span>
+                  </div>
+                  <div class="timbangan-summary-row">
+                    <span class="timbangan-summary-label">Total Omzet Pabrik:</span>
+                    <span class="timbangan-summary-val" id="previewOmzetPabrik">Rp 0</span>
+                  </div>
+                  <div class="timbangan-summary-row">
+                    <span class="timbangan-summary-label">Total Biaya Jalan:</span>
+                    <span class="timbangan-summary-val text-warning" id="previewBiayaJalan">Rp 0</span>
+                  </div>
+                  <div class="timbangan-summary-row total-row">
+                    <span class="timbangan-summary-label">Estimasi Laba Bersih:</span>
+                    <span class="timbangan-summary-val text-accent" id="previewLabaBersih">Rp 0</span>
+                  </div>
+                </div>
+              </div>
+
+        <div class="card" style="margin-top: 1.25rem;">
+          <h3 class="card-heading" style="font-size: 1rem; margin-bottom: 0.5rem;">Alur Terpadu Pengiriman ke Pabrik Pengolahan</h3>
+          <p class="card-desc" style="margin-bottom: 1rem;">Mekanisme operasional terintegrasi dari timbangan mitra pengepul langsung ke armada truk ekspedisi:</p>
+          <div class="grid-two" style="gap: 1rem;">
+            <div style="background: var(--surface-secondary); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              <div style="font-weight: 700; margin-bottom: 0.25rem; color: var(--ink);">1. Muat Langsung dari Mitra Pengepul</div>
+              <p style="font-size: 0.85rem; color: var(--muted); margin: 0;">Centang setoran getah dari beberapa pengepul di tab "Muat Truk &amp; Surat Jalan". Berat muatan dan total HPP modal beli terakumulasi otomatis ke truk.</p>
+            </div>
+            <div style="background: var(--surface-secondary); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              <div style="font-weight: 700; margin-bottom: 0.25rem; color: var(--ink);">2. Terbitkan Surat Jalan Resmi</div>
+              <p style="font-size: 0.85rem; color: var(--muted); margin: 0;">Cetak Surat Jalan resmi ber-KOP CV Mandiri Putra. Dokumen pengiriman bersih dari rincian biaya internal demi kerahasiaan operasional.</p>
+            </div>
+            <div style="background: var(--surface-secondary); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              <div style="font-weight: 700; margin-bottom: 0.25rem; color: var(--ink);">3. Catat Biaya Operasional Jalan</div>
+              <p style="font-size: 0.85rem; color: var(--muted); margin: 0;">Input biaya riil sewa truk, upah sopir, uang makan jalan, kuli bongkar/muat untuk pembukuan internal laba rugi.</p>
+            </div>
+            <div style="background: var(--surface-secondary); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              <div style="font-weight: 700; margin-bottom: 0.25rem; color: var(--ink);">4. Realisasi Timbangan Pabrik</div>
+              <p style="font-size: 0.85rem; color: var(--muted); margin: 0;">Saat hasil faktur pabrik terbit, isi timbang netto dan harga per Kg. Sistem otomatis menghitung susut jalan dan laba bersih.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUBTAB 2: FORM MUAT TRUK & SURAT JALAN -->
+      <section id="tab-penjualan-form" class="tab-content hidden">
         <!-- Form Pengiriman & Surat Jalan Baru -->
         <div class="card">
           <div class="card-header-flex">
@@ -541,13 +918,19 @@
             </div>
           </form>
         </div>
+      </section>
 
+      <!-- SUBTAB 3: TABEL RIWAYAT PENGIRIMAN PABRIK -->
+      <section id="tab-penjualan-tabel" class="tab-content hidden">
         <!-- Tabel Riwayat & Rekap Pengiriman Pabrik -->
         <div class="card">
           <div class="card-header-flex">
             <div>
               <h2 class="card-heading">Riwayat Pengiriman Pabrik</h2>
               <p class="card-desc">Daftar surat jalan CV Mandiri Putra &amp; realisasi penjualan.</p>
+            </div>
+            <div>
+              <button type="button" class="btn-primary" onclick="navigateTo('penjualan', 'penjualan-form')">+ Muat Truk Baru</button>
             </div>
           </div>
 
@@ -583,124 +966,9 @@
             </table>
           </div>
         </div>
+      </section>
 
-      </div>
-    </section>
-
-    <!-- ===================== TAB: REKAP ===================== -->
-    <section id="tab-rekap" class="tab-content hidden">
-      <div class="card">
-        <div class="card-header-flex">
-          <div>
-            <h2 class="card-heading">Rekapitulasi Saldo &amp; Tonase Pengepul</h2>
-            <p class="card-desc">Posisi buku kas akumulasi deposit, volume serapan getah, dan saldo berjalan.</p>
-          </div>
-          <div class="filter-box" style="margin-bottom:0; padding:0.5rem;">
-            <input type="text" id="filterRekapNama" class="form-input" style="width: 170px;" placeholder="Cari nama..." />
-            <input type="text" id="filterRekapDaerah" class="form-input" style="width: 150px;" placeholder="Filter daerah..." />
-          </div>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table" id="tableRekap">
-            <thead>
-              <tr>
-                <th>Pengepul</th>
-                <th>Daerah</th>
-                <th class="text-right">Total Deposit</th>
-                <th class="text-right">Total Tonase</th>
-                <th class="text-right">Nilai Pembelian</th>
-                <th class="text-right">Sisa Deposit</th>
-                <th class="text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyRekap"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== TAB: RIWAYAT ===================== -->
-    <section id="tab-riwayat" class="tab-content hidden">
-      <div class="card">
-        <div class="card-header-flex">
-          <div>
-            <h2 class="card-heading">Buku Arsip Transaksi Pembelian</h2>
-            <p class="card-desc">Catatan lengkap seluruh transaksi timbangan karet beserta rincian angkatan.</p>
-          </div>
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <button id="btnPrintRiwayat" class="btn-action">Cetak Laporan (Filter)</button>
-            <button id="btnPrintRiwayatAll" class="btn-action">Cetak Semua Riwayat</button>
-            <button id="btnPrintRekap" class="btn-action">Cetak Rekap Pengepul</button>
-          </div>
-        </div>
-
-        <!-- Filter Controls -->
-        <div class="filter-box">
-          <div class="filter-group">
-            <label class="filter-label" for="filterNama">Nama Pengepul</label>
-            <input type="text" id="filterNama" class="form-input" placeholder="Cari nama..." />
-          </div>
-          <div class="filter-group">
-            <label class="filter-label" for="filterDaerah">Daerah Asal</label>
-            <input type="text" id="filterDaerah" class="form-input" placeholder="Filter daerah..." />
-          </div>
-          <div class="filter-group">
-            <label class="filter-label" for="filterDariTgl">Dari Tanggal</label>
-            <input type="date" id="filterDariTgl" class="form-input" />
-          </div>
-          <div class="filter-group">
-            <label class="filter-label" for="filterSampaiTgl">Sampai Tanggal</label>
-            <input type="date" id="filterSampaiTgl" class="form-input" />
-          </div>
-          <button id="btnResetFilter" class="btn-secondary" style="height:38px;">Reset Filter</button>
-        </div>
-
-        <!-- Table Data -->
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Pengepul</th>
-                <th>Daerah</th>
-                <th class="text-right">Harga/Kg</th>
-                <th class="text-right">Harga/Ton</th>
-                <th>Rincian Timbangan</th>
-                <th class="text-right">Total Kw</th>
-                <th class="text-right">Tonase</th>
-                <th class="text-right">Total Nilai</th>
-                <th>Catatan</th>
-                <th class="text-center">Tindakan</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyRiwayat"></tbody>
-          </table>
-        </div>
-
-        <div id="riwayatSummary" class="filter-summary hidden"></div>
-      </div>
-    </section>
-
-    <!-- ===================== TAB: GRAFIK ===================== -->
-    <section id="tab-grafik" class="tab-content hidden">
-      <div class="charts-row">
-        <div class="card">
-          <h2 class="card-heading">Distribusi Akumulasi Tonase per Pengepul</h2>
-          <p class="card-desc">Komparasi total getah karet yang disetor dalam satuan Ton.</p>
-          <div class="chart-container"><canvas id="chartTonase"></canvas></div>
-        </div>
-        <div class="card">
-          <h2 class="card-heading">Status Posisi Saldo Deposit per Pengepul</h2>
-          <p class="card-desc">Perbandingan sisa saldo panjar modal jalan tiap mitra.</p>
-          <div class="chart-container"><canvas id="chartDeposit"></canvas></div>
-        </div>
-      </div>
-      <div class="card">
-        <h2 class="card-heading">Tren Bulanan Serapan Getah Karet (Kuintal)</h2>
-        <p class="card-desc">Perkembangan total volume getah yang masuk ke pembukuan per bulan.</p>
-        <div class="chart-container-wide"><canvas id="chartTren"></canvas></div>
-      </div>
-    </section>
+    </div> <!-- /#page-penjualan -->
 
   </main>
 

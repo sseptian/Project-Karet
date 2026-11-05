@@ -371,59 +371,261 @@ function setDefaultDates() {
 }
 
 // ============================================================
-//  4. NAVIGASI SISTEM (PEMBELIAN vs PENJUALAN) & TAB
+//  4. NAVIGASI SISTEM (ROUTING SPA & RESPONSIVE DRAWER)
 // ============================================================
-function initTabs() {
-  // Mode Switcher Utama: Pembelian vs Penjualan
+let currentPage = 'pembelian';
+let currentPembelianTab = 'dashboard';
+let currentPenjualanTab = 'penjualan-kpi';
+
+/**
+ * SPA Router untuk memindahkan halaman & subtab secara mulus tanpa reload
+ * @param {'pembelian'|'penjualan'} page - Halaman utama
+ * @param {string} tab - ID subtab
+ * @param {boolean} updateHash - Apakah memperbarui hash URL
+ */
+function navigateTo(page, tab, updateHash = true) {
+  // 1. Normalisasi Halaman Utama
+  if (page !== 'pembelian' && page !== 'penjualan') {
+    page = 'pembelian';
+  }
+  currentPage = page;
+
+  // 2. Normalisasi & Pemetaan Subtab
+  if (page === 'pembelian') {
+    const validTabs = ['dashboard', 'pengepul', 'deposit', 'pembelian', 'rekap', 'riwayat', 'grafik'];
+    if (!validTabs.includes(tab)) {
+      tab = currentPembelianTab || 'dashboard';
+    }
+    currentPembelianTab = tab;
+  } else {
+    // Dukungan alias ramah pengguna untuk penjualan
+    if (tab === 'ringkasan' || tab === 'kpi') tab = 'penjualan-kpi';
+    else if (tab === 'muat-truk' || tab === 'form' || tab === 'surat-jalan') tab = 'penjualan-form';
+    else if (tab === 'riwayat' || tab === 'tabel' || tab === 'pengiriman') tab = 'penjualan-tabel';
+
+    const validTabs = ['penjualan-kpi', 'penjualan-form', 'penjualan-tabel'];
+    if (!validTabs.includes(tab)) {
+      tab = currentPenjualanTab || 'penjualan-kpi';
+    }
+    currentPenjualanTab = tab;
+  }
+
+  // 3. Tampilkan Halaman Spesifik (Strict Page Isolation)
+  const pageBeli = document.getElementById('page-pembelian');
+  const pageJual = document.getElementById('page-penjualan');
+  if (page === 'pembelian') {
+    if (pageBeli) pageBeli.classList.remove('hidden');
+    if (pageJual) pageJual.classList.add('hidden');
+  } else {
+    if (pageBeli) pageBeli.classList.add('hidden');
+    if (pageJual) pageJual.classList.remove('hidden');
+  }
+
+  // 4. Update Navigasi Desktop (Mode Bar & Subnav)
   const btnModeBeli = document.getElementById('btnModePembelian');
   const btnModeJual = document.getElementById('btnModePenjualan');
   const subnavBeli  = document.getElementById('subnavPembelian');
+  const subnavJual  = document.getElementById('subnavPenjualan');
 
-  if (btnModeBeli && btnModeJual) {
-    btnModeBeli.addEventListener('click', () => {
-      btnModeBeli.classList.add('active');
-      btnModeJual.classList.remove('active');
-      if (subnavBeli) subnavBeli.classList.remove('hidden');
+  if (page === 'pembelian') {
+    if (btnModeBeli) btnModeBeli.classList.add('active');
+    if (btnModeJual) btnModeJual.classList.remove('active');
+    if (subnavBeli) subnavBeli.classList.remove('hidden');
+    if (subnavJual) subnavJual.classList.add('hidden');
+  } else {
+    if (btnModeJual) btnModeJual.classList.add('active');
+    if (btnModeBeli) btnModeBeli.classList.remove('active');
+    if (subnavBeli) subnavBeli.classList.add('hidden');
+    if (subnavJual) subnavJual.classList.remove('hidden');
+  }
 
-      // Tampilkan tab pembelian yang sebelumnya aktif (atau default ringkasan)
-      const activeBtn = document.querySelector('.tab-btn.active') || document.querySelector('.tab-btn[data-tab="dashboard"]');
-      const target = activeBtn ? activeBtn.dataset.tab : 'dashboard';
-      document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
-      const activeSection = document.getElementById('tab-' + target);
-      if (activeSection) activeSection.classList.remove('hidden');
+  // 5. Update Drawer Mobile (Mode Switcher & Menu Group)
+  const drawerModeBeli = document.getElementById('drawerModePembelian');
+  const drawerModeJual = document.getElementById('drawerModePenjualan');
+  const drawerMenuBeli = document.getElementById('drawerMenuPembelian');
+  const drawerMenuJual = document.getElementById('drawerMenuPenjualan');
+
+  if (page === 'pembelian') {
+    if (drawerModeBeli) drawerModeBeli.classList.add('active');
+    if (drawerModeJual) drawerModeJual.classList.remove('active');
+    if (drawerMenuBeli) drawerMenuBeli.classList.remove('hidden');
+    if (drawerMenuJual) drawerMenuJual.classList.add('hidden');
+  } else {
+    if (drawerModeJual) drawerModeJual.classList.add('active');
+    if (drawerModeBeli) drawerModeBeli.classList.remove('active');
+    if (drawerMenuBeli) drawerMenuBeli.classList.add('hidden');
+    if (drawerMenuJual) drawerMenuJual.classList.remove('hidden');
+  }
+
+  // 6. Tampilkan Subtab yang Aktif
+  if (page === 'pembelian') {
+    const beliSections = pageBeli ? pageBeli.querySelectorAll('.tab-content') : [];
+    beliSections.forEach(s => s.classList.add('hidden'));
+    const targetSec = document.getElementById('tab-' + tab);
+    if (targetSec) targetSec.classList.remove('hidden');
+
+    // Update active tab buttons (Desktop & Drawer)
+    document.querySelectorAll('#subnavPembelian .tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('#drawerMenuPembelian .drawer-link').forEach(link => {
+      link.classList.toggle('active', link.dataset.tab === tab);
     });
 
-    btnModeJual.addEventListener('click', () => {
-      btnModeJual.classList.add('active');
-      btnModeBeli.classList.remove('active');
-      if (subnavBeli) subnavBeli.classList.add('hidden');
+    if (tab === 'grafik') {
+      renderGrafik();
+    }
+  } else {
+    const jualSections = pageJual ? pageJual.querySelectorAll('.tab-content') : [];
+    jualSections.forEach(s => s.classList.add('hidden'));
+    const targetSec = document.getElementById('tab-' + tab);
+    if (targetSec) targetSec.classList.remove('hidden');
 
-      // Tampilkan modul penjualan pabrik secara fokus & terpadu
-      document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
-      const tabPenjualan = document.getElementById('tab-penjualan');
-      if (tabPenjualan) tabPenjualan.classList.remove('hidden');
+    // Update active tab buttons (Desktop & Drawer)
+    document.querySelectorAll('#subnavPenjualan .tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('#drawerMenuPenjualan .drawer-link').forEach(link => {
+      link.classList.toggle('active', link.dataset.tab === tab);
+    });
 
-      renderPenjualanPabrik();
-      populatePembelianTimbanganSelector();
+    renderPenjualanPabrik();
+    populatePembelianTimbanganSelector();
+  }
+
+  // 7. Sinkronisasi Hash URL untuk Browser History
+  if (updateHash) {
+    const newHash = `${page}/${tab}`;
+    if (window.location.hash.replace(/^#\/?/, '') !== newHash) {
+      window.location.hash = newHash;
+    }
+  }
+
+  // 8. Tutup Drawer Jika Terbuka
+  closeDrawer();
+}
+window.navigateTo = navigateTo;
+
+/** Buka Sidebar / Drawer Navigasi */
+function openDrawer() {
+  const drawer = document.getElementById('navDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const hamburger = document.getElementById('btnHamburger');
+
+  if (drawer) {
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+  }
+  if (backdrop) {
+    backdrop.classList.remove('hidden');
+    requestAnimationFrame(() => backdrop.classList.add('active'));
+    backdrop.setAttribute('aria-hidden', 'false');
+  }
+  if (hamburger) {
+    hamburger.setAttribute('aria-expanded', 'true');
+  }
+  document.body.style.overflow = 'hidden';
+}
+window.openDrawer = openDrawer;
+
+/** Tutup Sidebar / Drawer Navigasi */
+function closeDrawer() {
+  const drawer = document.getElementById('navDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const hamburger = document.getElementById('btnHamburger');
+
+  if (drawer) {
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+  }
+  if (backdrop) {
+    backdrop.classList.remove('active');
+    backdrop.classList.add('hidden');
+    backdrop.setAttribute('aria-hidden', 'true');
+  }
+  if (hamburger) {
+    hamburger.setAttribute('aria-expanded', 'false');
+  }
+  document.body.style.overflow = '';
+}
+window.closeDrawer = closeDrawer;
+
+/** Parsing rute hash URL */
+function handleHashRoute() {
+  const rawHash = window.location.hash.replace(/^#\/?/, '').trim();
+  if (!rawHash) {
+    navigateTo('pembelian', 'dashboard', false);
+    return;
+  }
+  const parts = rawHash.split('/');
+  const page = parts[0] ? parts[0].toLowerCase() : 'pembelian';
+  const tab = parts[1] ? parts[1].toLowerCase() : '';
+  navigateTo(page, tab, false);
+}
+
+/** Inisialisasi Seluruh Sistem Navigasi & Routing */
+function initTabs() {
+  // 1. Hamburger & Drawer Event Listeners
+  const btnHamburger = document.getElementById('btnHamburger');
+  const btnCloseDrawer = document.getElementById('btnCloseDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+
+  if (btnHamburger) btnHamburger.addEventListener('click', openDrawer);
+  if (btnCloseDrawer) btnCloseDrawer.addEventListener('click', closeDrawer);
+  if (backdrop) backdrop.addEventListener('click', closeDrawer);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+
+  // 2. Desktop Mode Switcher (Pembelian vs Penjualan)
+  const btnModeBeli = document.getElementById('btnModePembelian');
+  const btnModeJual = document.getElementById('btnModePenjualan');
+  if (btnModeBeli) {
+    btnModeBeli.addEventListener('click', () => navigateTo('pembelian', currentPembelianTab));
+  }
+  if (btnModeJual) {
+    btnModeJual.addEventListener('click', () => navigateTo('penjualan', currentPenjualanTab));
+  }
+
+  // 3. Drawer Mode Switcher (Mobile)
+  const drawerModeBeli = document.getElementById('drawerModePembelian');
+  const drawerModeJual = document.getElementById('drawerModePenjualan');
+  if (drawerModeBeli) {
+    drawerModeBeli.addEventListener('click', () => {
+      currentPage = 'pembelian';
+      navigateTo('pembelian', currentPembelianTab);
+    });
+  }
+  if (drawerModeJual) {
+    drawerModeJual.addEventListener('click', () => {
+      currentPage = 'penjualan';
+      navigateTo('penjualan', currentPenjualanTab);
     });
   }
 
-  // Sub-navigasi Tab Pembelian
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.tab;
-      // Aktifkan button
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      // Tampilkan section
-      document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
-      const sec = document.getElementById('tab-' + target);
-      if (sec) sec.classList.remove('hidden');
-      // Render chart saat tab grafik dibuka
-      if (target === 'grafik') renderGrafik();
+  // 4. Desktop Sub-Navigation Buttons (Pembelian & Penjualan)
+  document.querySelectorAll('#subnavPembelian .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => navigateTo('pembelian', btn.dataset.tab));
+  });
+  document.querySelectorAll('#subnavPenjualan .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => navigateTo('penjualan', btn.dataset.tab));
+  });
+
+  // 5. Drawer Navigation Links
+  document.querySelectorAll('.drawer-link').forEach(link => {
+    link.addEventListener('click', () => {
+      const p = link.dataset.page;
+      const t = link.dataset.tab;
+      navigateTo(p, t);
     });
   });
+
+  // 6. Listen ke Perubahan Hash URL (SPA History Back / Forward)
+  window.addEventListener('hashchange', handleHashRoute);
+
+  // 7. Jalankan Rute Awal Sesuai URL Saat Ini
+  handleHashRoute();
 }
 
 // ============================================================
@@ -2422,6 +2624,8 @@ function savePenjualanPabrik(cetakSetelahSimpan = false) {
 
   if (cetakSetelahSimpan) {
     printSuratJalan(newTx.id);
+  } else {
+    navigateTo('penjualan', 'penjualan-tabel');
   }
 
   // Reset form
