@@ -326,9 +326,120 @@ function formatRupiah(angka) {
   return (angka < 0 ? '-Rp ' : 'Rp ') + formatted;
 }
 
-/** Format angka desimal dengan presisi tertentu */
-function formatDecimal(n, digits = 3) {
-  return parseFloat(n).toFixed(digits);
+/**
+ * Format angka desimal dengan rapi menggunakan koma (standar Indonesia: 2,7 atau 2,08)
+ * dibulatkan dengan rapi sehingga tidak terbaca sebagai ribuan ("2.078").
+ * 1 kuintal = 100 kg, 1 ton = 10 kuintal
+ */
+function formatDecimal(n, maxDigits = 2) {
+  if (n === null || n === undefined || isNaN(n)) return '0';
+  const num = parseFloat(n);
+  if (isNaN(num)) return '0';
+  const factor = Math.pow(10, maxDigits);
+  const rounded = Math.round(num * factor) / factor;
+  return rounded.toLocaleString('id-ID', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDigits
+  });
+}
+
+/** Format angka dengan pemisah ribuan titik (500000 -> 500.000) */
+function formatNumberWithDots(val) {
+  if (val === null || val === undefined || val === '') return '';
+  const clean = String(val).replace(/\D/g, '');
+  if (!clean) return '';
+  return parseInt(clean, 10).toLocaleString('id-ID');
+}
+
+/** Parsing input teks berformat rupiah titik kembali ke integer murni untuk database */
+function parseRupiahInput(val) {
+  if (val === null || val === undefined || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : Math.round(val);
+  const clean = String(val).replace(/\D/g, '');
+  return clean ? parseInt(clean, 10) : 0;
+}
+
+/** Pasang auto-format ribuan dengan titik pada elemen input rupiah */
+function attachRupiahAutoFormat(inputEl, onInputCallback) {
+  if (!inputEl) return;
+  inputEl.type = 'text';
+  inputEl.inputMode = 'numeric';
+
+  inputEl.addEventListener('input', (e) => {
+    const rawVal = e.target.value.replace(/\D/g, '');
+    if (!rawVal) {
+      e.target.value = '';
+    } else {
+      e.target.value = parseInt(rawVal, 10).toLocaleString('id-ID');
+    }
+    if (typeof onInputCallback === 'function') {
+      onInputCallback(parseRupiahInput(e.target.value));
+    }
+  });
+}
+
+/**
+ * Konversi nilai berat ke Kg
+ * 1 kuintal = 100 kg, 1 ton = 10 kuintal = 1000 kg
+ */
+function convertToKg(nilai, satuan) {
+  const num = parseFloat(nilai) || 0;
+  if (satuan === 'kuintal') return num * 100;
+  if (satuan === 'ton') return num * 1000;
+  return num; // 'kg'
+}
+
+/**
+ * Konversi nilai berat dari Kg ke satuan target
+ */
+function convertFromKg(nilaiKg, satuanTarget) {
+  const num = parseFloat(nilaiKg) || 0;
+  if (satuanTarget === 'kuintal') return num / 100;
+  if (satuanTarget === 'ton') return num / 1000;
+  return num; // 'kg'
+}
+
+/** Update teks pembantu konversi satuan berat (Kg / Kw / Ton) */
+function updateWeightHint(inputEl, selectEl, hintEl) {
+  if (!inputEl || !selectEl || !hintEl) return;
+  const val = parseFloat(inputEl.value) || 0;
+  const unit = selectEl.value;
+  if (val <= 0) {
+    hintEl.textContent = '';
+    return;
+  }
+  const kg = convertToKg(val, unit);
+  const kw = kg / 100;
+  const ton = kg / 1000;
+  hintEl.textContent = `Setara: ${formatDecimal(kg, 0)} Kg (${formatDecimal(kw, 2)} Kw / ${formatDecimal(ton, 2)} Ton)`;
+}
+
+/** Pantau perubahan satuan dan nilai input berat */
+function setupUnitWatcher(inputEl, selectEl, hintEl, onChangeCallback) {
+  if (!inputEl || !selectEl) return;
+  let prevUnit = selectEl.value;
+
+  selectEl.addEventListener('change', () => {
+    const newUnit = selectEl.value;
+    const rawVal = parseFloat(inputEl.value);
+    if (!isNaN(rawVal) && rawVal > 0) {
+      const kg = convertToKg(rawVal, prevUnit);
+      const converted = convertFromKg(kg, newUnit);
+      inputEl.value = Math.round(converted * 1000) / 1000;
+    }
+    prevUnit = newUnit;
+    updateWeightHint(inputEl, selectEl, hintEl);
+    if (typeof onChangeCallback === 'function') {
+      onChangeCallback();
+    }
+  });
+
+  inputEl.addEventListener('input', () => {
+    updateWeightHint(inputEl, selectEl, hintEl);
+    if (typeof onChangeCallback === 'function') {
+      onChangeCallback();
+    }
+  });
 }
 
 /** Format tanggal ISO ke lokal Indonesia: 25 Sep 2024 */
@@ -713,9 +824,9 @@ function hitungTimbangan() {
   // Konversi Kuintal → Ton (1 Ton = 10 Kuintal)
   const tonase = totalKuintal / KW_PER_TON;
 
-  // Input harga dalam Rp/Kg → konversi ke Rp/Ton untuk kalkulasi
+  // Input harga dalam Rp/Kg (auto-format titik) → konversi ke Rp/Ton untuk kalkulasi
   // Rumus: hargaPerTon = hargaPerKg × 1000 (karena 1 Ton = 1000 Kg)
-  const hargaPerKg = parseFloat(document.getElementById('beliHarga').value) || 0;
+  const hargaPerKg = parseRupiahInput(document.getElementById('beliHarga').value);
   const hargaPerTon = hargaPerKg * 1000;
 
   // Estimasi total harga = tonase × harga per ton
@@ -723,7 +834,7 @@ function hitungTimbangan() {
 
   // Update preview
   document.getElementById('previewKuintal').textContent = formatDecimal(totalKuintal, 2) + ' Kw';
-  document.getElementById('previewTonase').textContent = formatDecimal(tonase, 3) + ' Ton';
+  document.getElementById('previewTonase').textContent = formatDecimal(tonase, 2) + ' Ton';
   document.getElementById('previewHargaKonversi').textContent =
     `${formatRupiah(hargaPerKg)}/Kg → ${formatRupiah(hargaPerTon)}/Ton`;
   document.getElementById('previewHarga').textContent = formatRupiah(estimasiHarga);
@@ -775,8 +886,11 @@ function bindFormEvents() {
   // Tombol tambah angkatan
   document.getElementById('btnAddTimbangan').addEventListener('click', addTimbanganRow);
 
-  // Harga berubah → recalc
-  document.getElementById('beliHarga').addEventListener('input', hitungTimbangan);
+  // Pasang auto-format Rupiah dengan pemisah titik
+  attachRupiahAutoFormat(document.getElementById('beliHarga'), () => hitungTimbangan());
+  attachRupiahAutoFormat(document.getElementById('depositJumlah'));
+  attachRupiahAutoFormat(document.getElementById('editDepositJumlah'));
+  attachRupiahAutoFormat(document.getElementById('editPembelianHarga'), () => hitungEditTimbangan());
 
   // Pengepul berubah → update deposit preview
   document.getElementById('beliPengepul').addEventListener('change', () => {
@@ -828,7 +942,7 @@ function handleInputDeposit(e) {
   e.preventDefault();
   const pengepulId = document.getElementById('depositPengepul').value;
   const tanggal = document.getElementById('depositTanggal').value;
-  const jumlah = parseFloat(document.getElementById('depositJumlah').value);
+  const jumlah = parseRupiahInput(document.getElementById('depositJumlah').value);
   const catatan = document.getElementById('depositCatatan').value.trim() || 'Top-up deposit';
 
   if (!pengepulId || !tanggal || isNaN(jumlah) || jumlah <= 0) {
@@ -875,7 +989,7 @@ function handleCatatPembelian(e) {
   e.preventDefault();
   const tanggal = document.getElementById('beliTanggal').value;
   const pengepulId = document.getElementById('beliPengepul').value;
-  const hargaPerKg = parseFloat(document.getElementById('beliHarga').value);  // input dalam Rp/Kg
+  const hargaPerKg = parseRupiahInput(document.getElementById('beliHarga').value);  // input dalam Rp/Kg
   const catatan = document.getElementById('beliCatatan').value.trim() || '';
 
   if (!tanggal || !pengepulId || isNaN(hargaPerKg) || hargaPerKg <= 0) {
@@ -951,7 +1065,7 @@ function handleCatatPembelian(e) {
   setDefaultDates();
 
   showToast(
-    `Pembelian ${formatDecimal(totalKuintal, 2)} Kw (${formatDecimal(totalTonase, 3)} Ton) senilai ${formatRupiah(totalHarga)} berhasil dicatat!`,
+    `Pembelian ${formatDecimal(totalKuintal, 2)} Kw (${formatDecimal(totalTonase, 2)} Ton) senilai ${formatRupiah(totalHarga)} berhasil dicatat!`,
     'success'
   );
 }
@@ -1002,7 +1116,7 @@ function renderKPI() {
   document.getElementById('kpiTotalBeli').textContent = formatRupiah(totalBeli);
   document.getElementById('kpiSisaDeposit').textContent = formatRupiah(sisaDeposit);
   document.getElementById('kpiTotalTonase').textContent = formatDecimal(totalKuintal, 2) + ' Kw';
-  document.getElementById('kpiTotalTon').textContent = formatDecimal(totalTon, 3) + ' Ton';
+  document.getElementById('kpiTotalTon').textContent = formatDecimal(totalTon, 2) + ' Ton';
 
   // Warna sisa deposit
   const sisaEl = document.getElementById('kpiSisaDeposit');
@@ -1056,7 +1170,7 @@ function renderRecentTransactions() {
         <td class="font-medium">${p ? p.nama : '—'}</td>
         <td>${p ? p.daerah : '—'}</td>
         <td class="text-right">${formatDecimal(tx.totalKuintal, 2)} Kw</td>
-        <td class="text-right font-medium text-green-700">${formatDecimal(tx.totalTonase, 3)} Ton</td>
+        <td class="text-right font-medium text-green-700">${formatDecimal(tx.totalTonase, 2)} Ton</td>
         <td class="text-right font-semibold">${formatRupiah(tx.totalHarga)}</td>
       </tr>
     `;
@@ -1086,7 +1200,7 @@ function renderPengepulList() {
           </td>
           <td class="text-right">
             ${formatDecimal(p.totalTonase, 2)} Kw<br>
-            <span class="text-xs text-slate-400">${formatDecimal(tonaseTon, 3)} Ton</span>
+            <span class="text-xs text-slate-400">${formatDecimal(tonaseTon, 2)} Ton</span>
           </td>
           <td class="text-center">
             <div class="flex gap-1 justify-center">
@@ -1158,7 +1272,7 @@ function renderRekapTable(filter = {}) {
           <td class="text-right">${formatRupiah(p.totalDeposit)}</td>
           <td class="text-right">
             ${formatDecimal(p.totalTonase, 2)} Kw<br>
-            <span class="text-xs text-slate-400">${formatDecimal(tonaseTon, 3)} Ton</span>
+            <span class="text-xs text-slate-400">${formatDecimal(tonaseTon, 2)} Ton</span>
           </td>
           <td class="text-right">${formatRupiah(p.totalNilaiTransaksi)}</td>
           <td class="text-right font-semibold ${sisaClass}">${formatRupiah(p.sisaDeposit)}</td>
@@ -1216,7 +1330,7 @@ function renderRiwayat(filter = {}) {
         <td class="text-right text-slate-400 text-xs">${formatRupiah(hargaTon)}/Ton</td>
         <td class="text-xs text-slate-500">${timbanganDetail}</td>
         <td class="text-right font-medium">${formatDecimal(tx.totalKuintal, 2)} Kw</td>
-        <td class="text-right font-semibold text-green-700">${formatDecimal(tx.totalTonase, 3)} Ton</td>
+        <td class="text-right font-semibold text-green-700">${formatDecimal(tx.totalTonase, 2)} Ton</td>
         <td class="text-right font-semibold">${formatRupiah(tx.totalHarga)}</td>
         <td class="text-xs text-slate-400">${tx.catatan || '—'}</td>
         <td class="text-center">
@@ -1237,7 +1351,7 @@ function renderRiwayat(filter = {}) {
   sumEl.innerHTML = `
     <strong>${data.length} transaksi ditemukan</strong> &mdash;
     Total: <strong>${formatDecimal(sumKuintal, 2)} Kw</strong>
-    (${formatDecimal(sumTonase, 3)} Ton) senilai <strong>${formatRupiah(sumHarga)}</strong>
+    (${formatDecimal(sumTonase, 2)} Ton) senilai <strong>${formatRupiah(sumHarga)}</strong>
   `;
 }
 
@@ -1345,7 +1459,7 @@ function printRiwayat(filter = {}) {
         <td class="num">${formatRupiah(hargaKg)}/Kg<br><small>${formatRupiah(hargaTon)}/Ton</small></td>
         <td class="num detail">${detail}</td>
         <td class="num">${formatDecimal(tx.totalKuintal, 2)} Kw</td>
-        <td class="num">${formatDecimal(tx.totalTonase, 3)} Ton</td>
+        <td class="num">${formatDecimal(tx.totalTonase, 2)} Ton</td>
         <td class="num bold">${formatRupiah(tx.totalHarga)}</td>
         <td>${tx.catatan || '—'}</td>
       </tr>`;
@@ -1367,7 +1481,7 @@ function printRiwayat(filter = {}) {
         <tr>
           <td colspan="6" class="bold">TOTAL (${data.length} transaksi)</td>
           <td class="num bold">${formatDecimal(sumKuintal, 2)} Kw</td>
-          <td class="num bold">${formatDecimal(sumTonase, 3)} Ton</td>
+          <td class="num bold">${formatDecimal(sumTonase, 2)} Ton</td>
           <td class="num bold">${formatRupiah(sumHarga)}</td>
           <td></td>
         </tr>
@@ -1409,7 +1523,7 @@ function printRekap() {
           <td>${p.nama}</td>
           <td>${p.daerah}</td>
           <td class="num">${formatRupiah(p.totalDeposit)}</td>
-          <td class="num">${formatDecimal(p.totalTonase, 2)} Kw<br><small>${formatDecimal(ton, 3)} Ton</small></td>
+          <td class="num">${formatDecimal(p.totalTonase, 2)} Kw<br><small>${formatDecimal(ton, 2)} Ton</small></td>
           <td class="num">${formatRupiah(p.totalNilaiTransaksi)}</td>
           <td class="num bold ${statusClass}">${formatRupiah(p.sisaDeposit)}</td>
           <td class="center ${statusClass}">${status}</td>
@@ -1424,7 +1538,7 @@ function printRekap() {
       <div class="kpi-box"><div class="kpi-lbl">Total Deposit</div><div class="kpi-val">${formatRupiah(totDeposit)}</div></div>
       <div class="kpi-box"><div class="kpi-lbl">Total Nilai Beli</div><div class="kpi-val">${formatRupiah(totBeli)}</div></div>
       <div class="kpi-box"><div class="kpi-lbl">Total Sisa Deposit</div><div class="kpi-val ${totSisa < 0 ? 'minus' : ''}">${formatRupiah(totSisa)}</div></div>
-      <div class="kpi-box"><div class="kpi-lbl">Total Tonase</div><div class="kpi-val">${formatDecimal(totKuintal / KW_PER_TON, 3)} Ton</div></div>
+      <div class="kpi-box"><div class="kpi-lbl">Total Tonase</div><div class="kpi-val">${formatDecimal(totKuintal / KW_PER_TON, 2)} Ton</div></div>
     </div>
     <table>
       <thead>
@@ -1439,7 +1553,7 @@ function printRekap() {
         <tr>
           <td colspan="3" class="bold">TOTAL (${appData.pengepul.length} pengepul)</td>
           <td class="num bold">${formatRupiah(totDeposit)}</td>
-          <td class="num bold">${formatDecimal(totKuintal / KW_PER_TON, 3)} Ton</td>
+          <td class="num bold">${formatDecimal(totKuintal / KW_PER_TON, 2)} Ton</td>
           <td class="num bold">${formatRupiah(totBeli)}</td>
           <td class="num bold ${totSisa < 0 ? 'minus' : ''}">${formatRupiah(totSisa)}</td>
           <td></td>
@@ -1635,7 +1749,7 @@ function applyRiwayatFilter() {
 // ============================================================
 function renderDashboardCharts() {
   const labels = appData.pengepul.map(p => p.nama);
-  const tonaseData = appData.pengepul.map(p => parseFloat(formatDecimal(p.totalTonase / KW_PER_TON, 3)));
+  const tonaseData = appData.pengepul.map(p => parseFloat(formatDecimal(p.totalTonase / KW_PER_TON, 2)));
   const depositData = appData.pengepul.map(p => p.sisaDeposit);
   const colors = generateColors(appData.pengepul.length);
 
@@ -1648,7 +1762,7 @@ function renderDashboardCharts() {
 // ============================================================
 function renderGrafik() {
   const labels = appData.pengepul.map(p => p.nama);
-  const tonaseData = appData.pengepul.map(p => parseFloat(formatDecimal(p.totalTonase / KW_PER_TON, 3)));
+  const tonaseData = appData.pengepul.map(p => parseFloat(formatDecimal(p.totalTonase / KW_PER_TON, 2)));
   const depositData = appData.pengepul.map(p => p.sisaDeposit);
   const colors = generateColors(appData.pengepul.length);
 
@@ -1906,7 +2020,7 @@ function openEditDeposit(id) {
   document.getElementById('editDepositId').value = d.id;
   document.getElementById('editDepositPengepulNama').value = p ? `${p.nama} (${p.daerah})` : '—';
   document.getElementById('editDepositTanggal').value = d.tanggal;
-  document.getElementById('editDepositJumlah').value = d.jumlah;
+  document.getElementById('editDepositJumlah').value = formatNumberWithDots(d.jumlah);
   document.getElementById('editDepositCatatan').value = d.catatan || '';
   openModal('modalEditDeposit');
 }
@@ -1920,7 +2034,7 @@ document.getElementById('formEditDeposit').addEventListener('submit', function (
   e.preventDefault();
   const id = document.getElementById('editDepositId').value;
   const tanggal = document.getElementById('editDepositTanggal').value;
-  const jumlahBaru = parseFloat(document.getElementById('editDepositJumlah').value);
+  const jumlahBaru = parseRupiahInput(document.getElementById('editDepositJumlah').value);
   const catatan = document.getElementById('editDepositCatatan').value.trim();
 
   if (!tanggal || isNaN(jumlahBaru) || jumlahBaru <= 0) return;
@@ -1995,7 +2109,7 @@ function openEditPembelian(id) {
   document.getElementById('editPembelianId').value = tx.id;
   document.getElementById('editPembelianTanggal').value = tx.tanggal;
   document.getElementById('editPembelianPengepulNama').value = p ? `${p.nama} (${p.daerah})` : '—';
-  document.getElementById('editPembelianHarga').value = tx.hargaBeli;
+  document.getElementById('editPembelianHarga').value = formatNumberWithDots(tx.hargaBeli);
   document.getElementById('editPembelianCatatan').value = tx.catatan || '';
 
   // Populate baris timbangan
@@ -2048,12 +2162,12 @@ function hitungEditTimbangan() {
     if (!isNaN(v) && v > 0) totalKuintal += v;
   });
   const tonase = totalKuintal / KW_PER_TON;
-  const hargaPerKg = parseFloat(document.getElementById('editPembelianHarga').value) || 0;
+  const hargaPerKg = parseRupiahInput(document.getElementById('editPembelianHarga').value);
   const hargaPerTon = hargaPerKg * 1000;
   const total = tonase * hargaPerTon;
 
   document.getElementById('editPreviewKuintal').textContent = formatDecimal(totalKuintal, 2) + ' Kw';
-  document.getElementById('editPreviewTonase').textContent = formatDecimal(tonase, 3) + ' Ton';
+  document.getElementById('editPreviewTonase').textContent = formatDecimal(tonase, 2) + ' Ton';
   document.getElementById('editPreviewHarga').textContent = formatRupiah(total);
 }
 
@@ -2068,7 +2182,7 @@ document.getElementById('formEditPembelian').addEventListener('submit', function
   e.preventDefault();
   const id = document.getElementById('editPembelianId').value;
   const tanggal = document.getElementById('editPembelianTanggal').value;
-  const hargaPerKg = parseFloat(document.getElementById('editPembelianHarga').value);
+  const hargaPerKg = parseRupiahInput(document.getElementById('editPembelianHarga').value);
   const catatan = document.getElementById('editPembelianCatatan').value.trim();
 
   if (!tanggal || isNaN(hargaPerKg) || hargaPerKg <= 0) return;
@@ -2144,7 +2258,7 @@ function konfirmHapusPembelian(id) {
 
   tampilKonfirmHapus(
     `Hapus transaksi pembelian <strong>${formatDecimal(tx.totalKuintal, 2)} Kw</strong>
-     (${formatDecimal(tx.totalTonase, 3)} Ton) senilai <strong>${formatRupiah(tx.totalHarga)}</strong>
+     (${formatDecimal(tx.totalTonase, 2)} Ton) senilai <strong>${formatRupiah(tx.totalHarga)}</strong>
      tanggal ${formatTanggal(tx.tanggal)} untuk <strong>${p ? p.nama : '—'}</strong>?<br>
      Deposit dan tonase pengepul akan dikembalikan.`,
     () => {
@@ -2242,20 +2356,42 @@ function initPenjualanPabrik() {
     });
   }
 
-  // Live preview events
-  ['sjBeratGudang', 'sjBeratPabrik', 'sjHargaJual', 'sjModalGetah'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', updatePenjualanLivePreview);
-  });
+  // Setup Unit Watcher untuk Satuan Muat Truk (Kg, Kuintal, Ton)
+  setupUnitWatcher(
+    document.getElementById('sjBeratGudang'),
+    document.getElementById('sjSatuanMuatan'),
+    document.getElementById('hintBeratGudang'),
+    updatePenjualanLivePreview
+  );
+  setupUnitWatcher(
+    document.getElementById('sjBeratPabrik'),
+    document.getElementById('sjSatuanPabrik'),
+    document.getElementById('hintBeratPabrik'),
+    updatePenjualanLivePreview
+  );
+  setupUnitWatcher(
+    document.getElementById('modalTimbangBerat'),
+    document.getElementById('modalTimbangSatuan'),
+    document.getElementById('modalHintBeratPabrik'),
+    updateModalTimbangLivePreview
+  );
+
+  // Pasang auto-format titik rupiah pada input harga jual & modal penjualan
+  attachRupiahAutoFormat(document.getElementById('sjHargaJual'), updatePenjualanLivePreview);
+  attachRupiahAutoFormat(document.getElementById('sjModalGetah'), updatePenjualanLivePreview);
+  attachRupiahAutoFormat(document.getElementById('modalTimbangHarga'), updateModalTimbangLivePreview);
+  attachRupiahAutoFormat(document.getElementById('modalTimbangModal'), updateModalTimbangLivePreview);
 
   // Tombol HPP Otomatis
   const btnHpp = document.getElementById('btnPakaiHppOtomatis');
   if (btnHpp) {
     btnHpp.addEventListener('click', () => {
       const hpp = calculateHppGudang();
-      const beratGudang = parseFloat(document.getElementById('sjBeratGudang').value) || 0;
-      const modal = Math.round(beratGudang * hpp);
-      document.getElementById('sjModalGetah').value = modal;
+      const rawGudang = parseFloat(document.getElementById('sjBeratGudang').value) || 0;
+      const unitGudang = document.getElementById('sjSatuanMuatan') ? document.getElementById('sjSatuanMuatan').value : 'kg';
+      const beratGudangKg = convertToKg(rawGudang, unitGudang);
+      const modal = Math.round(beratGudangKg * hpp);
+      document.getElementById('sjModalGetah').value = formatNumberWithDots(modal);
       showToast(`Rata-rata modal beli: ${formatRupiah(hpp)}/Kg (${formatRupiah(modal)})`, 'info');
       updatePenjualanLivePreview();
     });
@@ -2364,7 +2500,7 @@ function populatePembelianTimbanganSelector() {
           <div style="font-size: 0.75rem; color: var(--muted);">Timbang: ${formatTanggal(tx.tanggal)} &bull; ${tx.timbangan ? tx.timbangan.length : 1} angkatan timbang</div>
         </div>
         <div class="timbangan-pick-qty">
-          <div>${formatDecimal(beratKg, 1)} Kg <small style="font-weight: normal; color: var(--muted);">(${formatDecimal(tonase, 3)} Ton)</small></div>
+          <div>${formatDecimal(beratKg, 1)} Kg <small style="font-weight: normal; color: var(--muted);">(${formatDecimal(tonase, 2)} Ton)</small></div>
           <div style="font-size: 0.75rem; color: var(--accent);">Modal: ${formatRupiah(hargaBeli)}</div>
         </div>
       </label>
@@ -2411,12 +2547,20 @@ function updateTimbanganPickerSummary() {
   const totalTon = totalKg / 1000;
   const avgPerKg = totalKg > 0 ? Math.round(totalModal / totalKg) : 0;
 
-  // Otomatis isi kolom berat muat dan modal getah (HPP)
+  // Otomatis isi kolom berat muat sesuai satuan & modal getah (HPP) format titik
   const inputBerat = document.getElementById('sjBeratGudang');
-  if (inputBerat) inputBerat.value = totalKg;
+  const selectSatuan = document.getElementById('sjSatuanMuatan');
+  const hintBerat = document.getElementById('hintBeratGudang');
+  const unit = selectSatuan ? selectSatuan.value : 'kg';
+
+  if (inputBerat) {
+    const converted = convertFromKg(totalKg, unit);
+    inputBerat.value = Math.round(converted * 1000) / 1000;
+    updateWeightHint(inputBerat, selectSatuan, hintBerat);
+  }
 
   const inputModal = document.getElementById('sjModalGetah');
-  if (inputModal) inputModal.value = totalModal;
+  if (inputModal) inputModal.value = formatNumberWithDots(totalModal);
 
   const inputCatatan = document.getElementById('sjCatatanMuatan');
   if (inputCatatan && (!inputCatatan.value || inputCatatan.value.startsWith('Gabungan:'))) {
@@ -2425,11 +2569,12 @@ function updateTimbanganPickerSummary() {
 
   if (summaryBox) {
     summaryBox.style.display = 'block';
+    const kw = totalKg / 100;
     summaryBox.innerHTML = `
       <div><strong>Terpilih ${checked.length} setoran timbangan (${namaPengepulSet.size} pengepul):</strong></div>
       <div style="margin-top: 2px;">
-        Total Muat: <strong>${formatDecimal(totalKg, 1)} Kg (${formatDecimal(totalTon, 3)} Ton)</strong> &bull; 
-        Total Modal Beli (HPP): <strong>${formatRupiah(totalModal)}</strong> 
+        Total Muat: <strong>${formatDecimal(totalKg, 0)} Kg (${formatDecimal(kw, 2)} Kw / ${formatDecimal(totalTon, 2)} Ton)</strong> &bull;
+        Total Modal Beli (HPP): <strong>${formatRupiah(totalModal)}</strong>
         <span style="color: #0369a1;">(Rata-rata: ${formatRupiah(avgPerKg)}/Kg)</span>
       </div>
     `;
@@ -2471,9 +2616,10 @@ function addBiayaRow(jenis = '', nominal = '', catatan = '') {
 
   const row = document.createElement('div');
   row.className = 'biaya-item-row';
+  const formattedNominal = nominal ? formatNumberWithDots(nominal) : '';
   row.innerHTML = `
     <input type="text" class="form-input biaya-jenis" placeholder="Jenis Biaya (Sewa Truk, Uang Jalan, Buruh)" value="${jenis}" />
-    <input type="number" class="form-input biaya-nominal" placeholder="Nominal (Rp)" value="${nominal}" min="0" step="1000" />
+    <input type="text" inputmode="numeric" class="form-input biaya-nominal rupiah-input" placeholder="Nominal (Rp)" value="${formattedNominal}" />
     <input type="text" class="form-input biaya-catatan" placeholder="Catatan (opsional)" value="${catatan}" />
     <button type="button" class="btn-remove-biaya" title="Hapus Biaya">&times;</button>
   `;
@@ -2486,7 +2632,7 @@ function addBiayaRow(jenis = '', nominal = '', catatan = '') {
   });
 
   const nominalInput = row.querySelector('.biaya-nominal');
-  nominalInput.addEventListener('input', () => {
+  attachRupiahAutoFormat(nominalInput, () => {
     updateTotalBiayaJalan();
     updatePenjualanLivePreview();
   });
@@ -2500,7 +2646,7 @@ function updateTotalBiayaJalan() {
   let total = 0;
   const rows = document.querySelectorAll('#biayaRowsContainer .biaya-nominal');
   rows.forEach(inp => {
-    const val = parseFloat(inp.value) || 0;
+    const val = parseRupiahInput(inp.value);
     total += val;
   });
   const label = document.getElementById('labelTotalBiayaJalan');
@@ -2528,10 +2674,14 @@ function updatePenjualanLivePreview() {
   const toggle = document.getElementById('toggleTimbangPabrik');
   if (!toggle || !toggle.checked) return;
 
-  const beratGudang = parseFloat(document.getElementById('sjBeratGudang').value) || 0;
-  const beratPabrik = parseFloat(document.getElementById('sjBeratPabrik').value) || 0;
-  const hargaJual = parseFloat(document.getElementById('sjHargaJual').value) || 0;
-  const modalKaret = parseFloat(document.getElementById('sjModalGetah').value) || 0;
+  const unitGudang = document.getElementById('sjSatuanMuatan') ? document.getElementById('sjSatuanMuatan').value : 'kg';
+  const unitPabrik = document.getElementById('sjSatuanPabrik') ? document.getElementById('sjSatuanPabrik').value : 'kg';
+  const rawBeratGudang = parseFloat(document.getElementById('sjBeratGudang').value) || 0;
+  const rawBeratPabrik = parseFloat(document.getElementById('sjBeratPabrik').value) || 0;
+  const beratGudang = convertToKg(rawBeratGudang, unitGudang);
+  const beratPabrik = convertToKg(rawBeratPabrik, unitPabrik);
+  const hargaJual = parseRupiahInput(document.getElementById('sjHargaJual').value);
+  const modalKaret = parseRupiahInput(document.getElementById('sjModalGetah').value);
   const totalBiaya = updateTotalBiayaJalan();
 
   const susutKg = beratGudang - beratPabrik;
@@ -2565,7 +2715,9 @@ function savePenjualanPabrik(cetakSetelahSimpan = false) {
   const namaPabrik = document.getElementById('sjPabrik').value.trim();
   const noPolisi = document.getElementById('sjNoPolisi').value.trim();
   const namaSopir = document.getElementById('sjNamaSopir').value.trim();
-  const beratGudang = parseFloat(document.getElementById('sjBeratGudang').value) || 0;
+  const unitGudang = document.getElementById('sjSatuanMuatan') ? document.getElementById('sjSatuanMuatan').value : 'kg';
+  const rawGudang = parseFloat(document.getElementById('sjBeratGudang').value) || 0;
+  const beratGudang = convertToKg(rawGudang, unitGudang);
   const catatanMuatan = document.getElementById('sjCatatanMuatan').value.trim();
 
   if (!noSuratJalan || !tanggal || !namaPabrik || !noPolisi || !namaSopir || beratGudang <= 0) {
@@ -2580,9 +2732,11 @@ function savePenjualanPabrik(cetakSetelahSimpan = false) {
   let beratPabrik = 0, hargaJual = 0, modalKaret = 0, susutKg = 0, susutPersen = 0, totalPendapatan = 0, labaBersih = 0, status = 'Dalam Perjalanan';
 
   if (isTimbangSelesai) {
-    beratPabrik = parseFloat(document.getElementById('sjBeratPabrik').value) || 0;
-    hargaJual = parseFloat(document.getElementById('sjHargaJual').value) || 0;
-    modalKaret = parseFloat(document.getElementById('sjModalGetah').value) || 0;
+    const unitPabrik = document.getElementById('sjSatuanPabrik') ? document.getElementById('sjSatuanPabrik').value : 'kg';
+    const rawPabrik = parseFloat(document.getElementById('sjBeratPabrik').value) || 0;
+    beratPabrik = convertToKg(rawPabrik, unitPabrik);
+    hargaJual = parseRupiahInput(document.getElementById('sjHargaJual').value);
+    modalKaret = parseRupiahInput(document.getElementById('sjModalGetah').value);
     susutKg = beratGudang - beratPabrik;
     susutPersen = beratGudang > 0 ? (susutKg / beratGudang) * 100 : 0;
     totalPendapatan = beratPabrik * hargaJual;
@@ -2666,7 +2820,7 @@ function renderPenjualanPabrik() {
   if (elPengiriman) elPengiriman.textContent = `${totalPengiriman} Truk`;
 
   const elTonase = document.getElementById('kpiTotalTonasePabrik');
-  if (elTonase) elTonase.textContent = `${formatDecimal(totalTonPabrik, 3)} Ton`;
+  if (elTonase) elTonase.textContent = `${formatDecimal(totalTonPabrik, 2)} Ton`;
 
   const elKg = document.getElementById('kpiTotalKgPabrik');
   if (elKg) elKg.textContent = `${formatDecimal(totalKgPabrik, 1)} Kg netto pabrik`;
@@ -2848,7 +3002,7 @@ function printSuratJalan(id) {
           <td>Slab / Lum Mangkok Kebun</td>
           <td class="num bold">
             ${formatDecimal(sj.beratGudang, 2)} Kg<br>
-            <span style="font-size: 11px; font-weight: normal; color: #555;">(${formatDecimal(tonase, 3)} Ton)</span>
+            <span style="font-size: 11px; font-weight: normal; color: #555;">(${formatDecimal(tonase, 2)} Ton)</span>
           </td>
           <td>${sj.catatanMuatan || 'Muatan ditimbang basah di gudang pengirim'}</td>
         </tr>
@@ -2902,13 +3056,16 @@ function openModalTimbangPabrik(id) {
   document.getElementById('modalTimbangNoSJ').textContent = sj.noSuratJalan;
   document.getElementById('modalTimbangPabrik').textContent = sj.namaPabrik;
   const elMuat = document.getElementById('modalTimbangMuatGudang');
-  elMuat.textContent = `${formatDecimal(sj.beratGudang, 1)} Kg (${formatDecimal(sj.beratGudang / 1000, 3)} Ton)`;
+  elMuat.textContent = `${formatDecimal(sj.beratGudang, 1)} Kg (${formatDecimal(sj.beratGudang / 1000, 2)} Ton)`;
   elMuat.dataset.val = sj.beratGudang;
 
   document.getElementById('modalTimbangTanggal').value = new Date().toISOString().slice(0, 10);
   document.getElementById('modalTimbangBerat').value = sj.beratPabrik > 0 ? sj.beratPabrik : '';
-  document.getElementById('modalTimbangHarga').value = sj.hargaJual > 0 ? sj.hargaJual : '';
-  document.getElementById('modalTimbangModal').value = sj.modalKaret > 0 ? sj.modalKaret : '';
+  const modalSat = document.getElementById('modalTimbangSatuan');
+  if (modalSat) modalSat.value = 'kg';
+  updateWeightHint(document.getElementById('modalTimbangBerat'), modalSat, document.getElementById('modalHintBeratPabrik'));
+  document.getElementById('modalTimbangHarga').value = sj.hargaJual > 0 ? formatNumberWithDots(sj.hargaJual) : '';
+  document.getElementById('modalTimbangModal').value = sj.modalKaret > 0 ? formatNumberWithDots(sj.modalKaret) : '';
 
   updateModalTimbangLivePreview();
   openModal('modalInputTimbangPabrik');
@@ -2921,9 +3078,11 @@ function updateModalTimbangLivePreview() {
   if (!sj) return;
 
   const beratGudang = sj.beratGudang || 0;
-  const beratPabrik = parseFloat(document.getElementById('modalTimbangBerat').value) || 0;
-  const hargaJual = parseFloat(document.getElementById('modalTimbangHarga').value) || 0;
-  const modalKaret = parseFloat(document.getElementById('modalTimbangModal').value) || 0;
+  const unitPabrik = document.getElementById('modalTimbangSatuan') ? document.getElementById('modalTimbangSatuan').value : 'kg';
+  const rawPabrik = parseFloat(document.getElementById('modalTimbangBerat').value) || 0;
+  const beratPabrik = convertToKg(rawPabrik, unitPabrik);
+  const hargaJual = parseRupiahInput(document.getElementById('modalTimbangHarga').value);
+  const modalKaret = parseRupiahInput(document.getElementById('modalTimbangModal').value);
   const totalBiaya = sj.totalBiaya || 0;
 
   const susutKg = beratGudang - beratPabrik;
@@ -2955,9 +3114,11 @@ function handleSaveModalTimbang(e) {
   e.preventDefault();
   const sjId = document.getElementById('modalTimbangId').value;
   const tglTimbang = document.getElementById('modalTimbangTanggal').value;
-  const beratPabrik = parseFloat(document.getElementById('modalTimbangBerat').value) || 0;
-  const hargaJual = parseFloat(document.getElementById('modalTimbangHarga').value) || 0;
-  const modalKaret = parseFloat(document.getElementById('modalTimbangModal').value) || 0;
+  const unitPabrik = document.getElementById('modalTimbangSatuan') ? document.getElementById('modalTimbangSatuan').value : 'kg';
+  const rawPabrik = parseFloat(document.getElementById('modalTimbangBerat').value) || 0;
+  const beratPabrik = convertToKg(rawPabrik, unitPabrik);
+  const hargaJual = parseRupiahInput(document.getElementById('modalTimbangHarga').value);
+  const modalKaret = parseRupiahInput(document.getElementById('modalTimbangModal').value);
 
   if (!sjId || beratPabrik <= 0 || hargaJual <= 0) {
     showToast('Harap isi berat bersih pabrik dan harga jual!', 'error');
@@ -3037,7 +3198,7 @@ function openRincianPenjualan(id) {
         <div>Pabrik Tujuan: <strong>${sj.namaPabrik}</strong></div>
         <div>Armada Truk: <strong>${sj.noPolisi}</strong></div>
         <div>Nama Sopir: <strong>${sj.namaSopir}</strong></div>
-        <div>Muat Gudang: <strong>${formatDecimal(sj.beratGudang, 1)} Kg (${formatDecimal(sj.beratGudang / 1000, 3)} Ton)</strong></div>
+        <div>Muat Gudang: <strong>${formatDecimal(sj.beratGudang, 1)} Kg (${formatDecimal(sj.beratGudang / 1000, 2)} Ton)</strong></div>
         <div>Catatan Muatan: <strong>${sj.catatanMuatan || 'Karet Alam'}</strong></div>
       </div>
     </div>
@@ -3048,7 +3209,7 @@ function openRincianPenjualan(id) {
         <div class="timbangan-summary" style="margin-top: 0.5rem;">
           <div class="timbangan-summary-row">
             <span class="timbangan-summary-label">Berat Bersih Pabrik:</span>
-            <span class="timbangan-summary-val">${formatDecimal(sj.beratPabrik, 1)} Kg (${formatDecimal(sj.beratPabrik / 1000, 3)} Ton)</span>
+            <span class="timbangan-summary-val">${formatDecimal(sj.beratPabrik, 1)} Kg (${formatDecimal(sj.beratPabrik / 1000, 2)} Ton)</span>
           </div>
           <div class="timbangan-summary-row">
             <span class="timbangan-summary-label">Susut Muat Jalan:</span>

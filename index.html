@@ -303,7 +303,7 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="depositJumlah">Jumlah Dana Deposit (Rp) <span>*</span></label>
-              <input type="number" id="depositJumlah" class="form-input" placeholder="Contoh: 10000000" min="1" required />
+              <input type="text" inputmode="numeric" id="depositJumlah" class="form-input rupiah-input" placeholder="Contoh: 10.000.000" required />
             </div>
             <div class="form-group">
               <label class="form-label" for="depositCatatan">Keterangan / Berita Kas</label>
@@ -364,7 +364,7 @@
 
             <div class="form-group">
               <label class="form-label" for="beliHarga">Harga Beli Karet Bersih (Rp/Kg) <span>*</span></label>
-              <input type="number" id="beliHarga" class="form-input" placeholder="Contoh: 1000" min="1" step="1" required />
+              <input type="text" inputmode="numeric" id="beliHarga" class="form-input rupiah-input" placeholder="Contoh: 11.500" required />
               <span class="form-help">Dikonversi otomatis ke harga Rp/Ton (1 Ton = 1.000 Kg).</span>
             </div>
 
@@ -386,7 +386,7 @@
                 </div>
                 <div class="timbangan-summary-row">
                   <span class="timbangan-summary-label">Konversi Satuan Tonase:</span>
-                  <span class="timbangan-summary-val" id="previewTonase">0.000 Ton</span>
+                  <span class="timbangan-summary-val" id="previewTonase">0 Ton</span>
                 </div>
                 <div class="timbangan-summary-row">
                   <span class="timbangan-summary-label">Skema Konversi Nilai:</span>
@@ -579,7 +579,7 @@
         </div>
         <div class="ledger-item">
           <span class="ledger-label">Tonase Terjual Pabrik</span>
-          <span class="ledger-value" id="kpiTotalTonasePabrik">0.000 Ton</span>
+          <span class="ledger-value" id="kpiTotalTonasePabrik">0 Ton</span>
           <span class="ledger-sub" id="kpiTotalKgPabrik">0 Kg netto pabrik</span>
         </div>
         <div class="ledger-item">
@@ -598,151 +598,6 @@
           <span class="ledger-sub">Omzet - biaya jalan - modal</span>
         </div>
       </div>
-
-      <div class="grid-two">
-
-        <!-- Form Pengiriman & Surat Jalan Baru -->
-        <div class="card">
-          <div class="card-header-flex">
-            <div>
-              <h2 class="card-heading">Pengiriman &amp; Surat Jalan Baru</h2>
-              <p class="card-desc">CV Mandiri Putra &mdash; Pengiriman getah karet ke pabrik pengolahan.</p>
-            </div>
-            <div>
-              <button type="button" class="btn-secondary" onclick="navigateTo('penjualan', 'penjualan-tabel')">Lihat Riwayat Pengiriman</button>
-            </div>
-          </div>
-
-          <form id="formPenjualanPabrik" class="form-grid">
-
-            <!-- Integrasi Langsung: Pilih Setoran Timbangan Pengepul untuk Truk Ini -->
-            <div class="timbangan-selector-box">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                <label class="form-label" style="margin: 0; font-weight: 700; color: var(--ink);">
-                  Pilih Setoran Timbangan Pengepul (Muat Langsung ke Truk)
-                </label>
-                <span style="font-size: 0.75rem; color: var(--muted);">Gabung beberapa pengepul ke 1 truk</span>
-              </div>
-              <p class="card-desc" style="font-size: 0.75rem; margin-bottom: 0.5rem;">
-                Centang setoran getah dari pengepul di bawah. Berat muatan truk dan total modal beli (HPP) otomatis terisi tanpa perlu hitung manual.
-              </p>
-              <div id="pembelianTimbanganSelector" class="timbangan-selector-list">
-                <!-- Diisi dinamis oleh script.js -->
-              </div>
-              <div id="pembelianSelectedSummary" style="display: none; background: #e0f2fe; border: 1px solid #bae6fd; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); margin-top: 0.5rem; font-size: 0.8rem; color: #0369a1;">
-              </div>
-            </div>
-
-            <!-- Langkah 1: Surat Jalan & Truk -->
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="sjNomor">Nomor Surat Jalan <span>*</span></label>
-                <input type="text" id="sjNomor" class="form-input" required />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="sjTanggal">Tanggal Muat / Kirim <span>*</span></label>
-                <input type="date" id="sjTanggal" class="form-input" required />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="sjPabrik">Nama Pabrik Tujuan <span>*</span></label>
-              <input type="text" id="sjPabrik" class="form-input" list="listPabrikLangganan" placeholder="Contoh: PT Aneka Bumi Pratama" required />
-              <datalist id="listPabrikLangganan">
-                <option value="PT Aneka Bumi Pratama" />
-                <option value="PT Remco Rubber Factory" />
-                <option value="PT Hok Tong" />
-                <option value="PT Kirana Megatara" />
-                <option value="PT Shamrock Manufacturing Corpora" />
-              </datalist>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="sjNoPolisi">No. Polisi Truk <span>*</span></label>
-                <input type="text" id="sjNoPolisi" class="form-input" placeholder="Contoh: BG 8421 UQ" required />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="sjNamaSopir">Nama Sopir / Pengemudi <span>*</span></label>
-                <input type="text" id="sjNamaSopir" class="form-input" placeholder="Contoh: Pak Bambang" required />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="sjBeratGudang">Total Berat Muat Truk (Kg) <span>*</span></label>
-                <input type="number" id="sjBeratGudang" class="form-input" step="0.1" min="1" placeholder="Otomatis dari pilihan timbangan atau ketik manual" required />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="sjCatatanMuatan">Catatan Muatan</label>
-                <input type="text" id="sjCatatanMuatan" class="form-input" placeholder="Contoh: Karet Slab / Lum Mangkok" />
-              </div>
-            </div>
-
-            <!-- Langkah 2: Rincian Biaya Operasional Jalan -->
-            <div class="form-group" style="margin-top: 0.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <div>
-                  <label class="form-label" style="margin: 0; font-weight: 600;">Rincian Biaya Jalan (Internal)</label>
-                  <span class="card-desc" style="font-size: 0.75rem;">Hanya dicatat untuk pembukuan, tidak tercantum di surat jalan.</span>
-                </div>
-                <button type="button" class="btn-secondary" id="btnAddBiayaRow" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">+ Tambah Biaya</button>
-              </div>
-              <div id="biayaRowsContainer"></div>
-              <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface-secondary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); margin-top: 0.5rem;">
-                <span style="font-size: 0.85rem; font-weight: 500;">Total Biaya Operasional Jalan:</span>
-                <span id="labelTotalBiayaJalan" style="font-weight: 700; color: var(--danger-text);">Rp 0</span>
-              </div>
-            </div>
-
-            <!-- Langkah 3: Realisasi Timbang Pabrik & Penjualan (Toggle Optional) -->
-            <div class="form-group" style="margin-top: 0.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
-                <input type="checkbox" id="toggleTimbangPabrik" style="width: 1.1rem; height: 1.1rem;" />
-                Truk sudah selesai ditimbang di pabrik (isi hasil penjualan sekarang)
-              </label>
-
-              <div id="timbangPabrikFields" class="hidden" style="margin-top: 0.75rem;">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label" for="sjBeratPabrik">Berat Bersih Timbang Pabrik (Kg)</label>
-                    <input type="number" id="sjBeratPabrik" class="form-input" step="0.1" min="0" placeholder="Contoh: 8350" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="sjHargaJual">Harga Jual Pabrik (Rp/Kg)</label>
-                    <input type="number" id="sjHargaJual" class="form-input" step="100" min="0" placeholder="Contoh: 13500" />
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label class="form-label" for="sjModalGetah">Total Modal Beli Getah (HPP Muatan dalam Rp)</label>
-                    <button type="button" id="btnPakaiHppOtomatis" class="btn-secondary" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;" title="Hitung modal berdasarkan harga beli rata-rata gudang">Gunakan Rata-rata Gudang</button>
-                  </div>
-                  <span class="card-desc" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Total nilai rupiah modal beli getah yang dimuat ke truk ini (otomatis dari pilihan di atas).</span>
-                  <input type="number" id="sjModalGetah" class="form-input" step="1000" min="0" placeholder="Contoh: 87280000" />
-                </div>
-
-                <!-- Live Preview Hasil Penjualan -->
-                <div class="timbangan-summary" style="margin-top: 0.75rem;">
-                  <div class="timbangan-summary-row">
-                    <span class="timbangan-summary-label">Susut Muat Jalan:</span>
-                    <span class="timbangan-summary-val" id="previewSusut">0 Kg (0.00%)</span>
-                  </div>
-                  <div class="timbangan-summary-row">
-                    <span class="timbangan-summary-label">Total Omzet Pabrik:</span>
-                    <span class="timbangan-summary-val" id="previewOmzetPabrik">Rp 0</span>
-                  </div>
-                  <div class="timbangan-summary-row">
-                    <span class="timbangan-summary-label">Total Biaya Jalan:</span>
-                    <span class="timbangan-summary-val text-warning" id="previewBiayaJalan">Rp 0</span>
-                  </div>
-                  <div class="timbangan-summary-row total-row">
-                    <span class="timbangan-summary-label">Estimasi Laba Bersih:</span>
-                    <span class="timbangan-summary-val text-accent" id="previewLabaBersih">Rp 0</span>
-                  </div>
-                </div>
-              </div>
 
         <div class="card" style="margin-top: 1.25rem;">
           <h3 class="card-heading" style="font-size: 1rem; margin-bottom: 0.5rem;">Alur Terpadu Pengiriman ke Pabrik Pengolahan</h3>
@@ -836,8 +691,16 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label" for="sjBeratGudang">Total Berat Muat Truk (Kg) <span>*</span></label>
-                <input type="number" id="sjBeratGudang" class="form-input" step="0.1" min="1" placeholder="Otomatis dari pilihan timbangan atau ketik manual" required />
+                <label class="form-label" for="sjBeratGudang">Total Berat Muat Truk <span>*</span></label>
+                <div class="input-unit-group">
+                  <input type="number" id="sjBeratGudang" class="form-input" step="any" min="0" placeholder="Pilih dari timbangan atau ketik..." required />
+                  <select id="sjSatuanMuatan" class="form-input unit-select" aria-label="Pilihan Satuan Muatan Truk">
+                    <option value="kg" selected>Kg</option>
+                    <option value="kuintal">Kuintal (Kw)</option>
+                    <option value="ton">Ton</option>
+                  </select>
+                </div>
+                <div id="hintBeratGudang" class="unit-hint-text"></div>
               </div>
               <div class="form-group">
                 <label class="form-label" for="sjCatatanMuatan">Catatan Muatan</label>
@@ -871,12 +734,20 @@
               <div id="timbangPabrikFields" class="hidden" style="margin-top: 0.75rem;">
                 <div class="form-row">
                   <div class="form-group">
-                    <label class="form-label" for="sjBeratPabrik">Berat Bersih Timbang Pabrik (Kg)</label>
-                    <input type="number" id="sjBeratPabrik" class="form-input" step="0.1" min="0" placeholder="Contoh: 8350" />
+                    <label class="form-label" for="sjBeratPabrik">Berat Bersih Timbang Pabrik</label>
+                    <div class="input-unit-group">
+                      <input type="number" id="sjBeratPabrik" class="form-input" step="any" min="0" placeholder="Contoh: 8350" />
+                      <select id="sjSatuanPabrik" class="form-input unit-select" aria-label="Pilihan Satuan Pabrik">
+                        <option value="kg" selected>Kg</option>
+                        <option value="kuintal">Kuintal (Kw)</option>
+                        <option value="ton">Ton</option>
+                      </select>
+                    </div>
+                    <div id="hintBeratPabrik" class="unit-hint-text"></div>
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="sjHargaJual">Harga Jual Pabrik (Rp/Kg)</label>
-                    <input type="number" id="sjHargaJual" class="form-input" step="100" min="0" placeholder="Contoh: 13500" />
+                    <input type="text" inputmode="numeric" id="sjHargaJual" class="form-input rupiah-input" placeholder="Contoh: 13.500" />
                   </div>
                 </div>
 
@@ -886,7 +757,7 @@
                     <button type="button" id="btnPakaiHppOtomatis" class="btn-secondary" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;" title="Hitung modal berdasarkan harga beli rata-rata gudang">Gunakan Rata-rata Gudang</button>
                   </div>
                   <span class="card-desc" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Total nilai rupiah modal beli getah yang dimuat ke truk ini (otomatis dari pilihan di atas).</span>
-                  <input type="number" id="sjModalGetah" class="form-input" step="1000" min="0" placeholder="Contoh: 87280000" />
+                  <input type="text" inputmode="numeric" id="sjModalGetah" class="form-input rupiah-input" placeholder="Contoh: 87.280.000" />
                 </div>
 
                 <!-- Live Preview Hasil Penjualan -->
@@ -1033,7 +904,7 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="editDepositJumlah">Jumlah Deposit (Rp) <span>*</span></label>
-          <input type="number" id="editDepositJumlah" class="form-input" min="1" required />
+          <input type="text" inputmode="numeric" id="editDepositJumlah" class="form-input rupiah-input" required />
         </div>
         <div class="form-group">
           <label class="form-label" for="editDepositCatatan">Keterangan</label>
@@ -1072,8 +943,7 @@
         <div class="grid-two">
           <div class="form-group">
             <label class="form-label" for="editPembelianHarga">Harga Beli Bersih (Rp/Kg) <span>*</span></label>
-            <input type="number" id="editPembelianHarga" class="form-input" min="1" step="1"
-                   oninput="hitungEditTimbangan()" required />
+            <input type="text" inputmode="numeric" id="editPembelianHarga" class="form-input rupiah-input" required />
           </div>
           <div class="form-group">
             <label class="form-label" for="editPembelianCatatan">Catatan Transaksi</label>
@@ -1098,7 +968,7 @@
           </div>
           <div class="timbangan-summary-row">
             <span class="timbangan-summary-label">Total Tonase:</span>
-            <span class="timbangan-summary-val" id="editPreviewTonase">0.000 Ton</span>
+            <span class="timbangan-summary-val" id="editPreviewTonase">0 Ton</span>
           </div>
           <div class="timbangan-summary-row total-row">
             <span class="timbangan-summary-label">Total Nilai Pembelian:</span>
@@ -1159,22 +1029,30 @@
             <input type="date" id="modalTimbangTanggal" class="form-input" required />
           </div>
           <div class="form-group">
-            <label class="form-label" for="modalTimbangBerat">Berat Bersih Pabrik (Kg) <span>*</span></label>
-            <input type="number" id="modalTimbangBerat" class="form-input" step="0.1" min="1" required />
+            <label class="form-label" for="modalTimbangBerat">Berat Bersih Pabrik <span>*</span></label>
+            <div class="input-unit-group">
+              <input type="number" id="modalTimbangBerat" class="form-input" step="any" min="0" required />
+              <select id="modalTimbangSatuan" class="form-input unit-select" aria-label="Pilihan Satuan Timbang Pabrik">
+                <option value="kg" selected>Kg</option>
+                <option value="kuintal">Kuintal (Kw)</option>
+                <option value="ton">Ton</option>
+              </select>
+            </div>
+            <div id="modalHintBeratPabrik" class="unit-hint-text"></div>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="modalTimbangHarga">Harga Jual Pabrik (Rp/Kg) <span>*</span></label>
-            <input type="number" id="modalTimbangHarga" class="form-input" step="100" min="1" required />
+            <input type="text" inputmode="numeric" id="modalTimbangHarga" class="form-input rupiah-input" placeholder="Contoh: 13.500" required />
           </div>
           <div class="form-group">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <label class="form-label" for="modalTimbangModal">Modal Getah (HPP)</label>
               <button type="button" id="btnModalPakaiHpp" class="btn-secondary" style="padding: 0.1rem 0.4rem; font-size: 0.7rem;">HPP Gudang</button>
             </div>
-            <input type="number" id="modalTimbangModal" class="form-input" step="1000" min="0" placeholder="0" />
+            <input type="text" inputmode="numeric" id="modalTimbangModal" class="form-input rupiah-input" placeholder="Contoh: 87.280.000" />
           </div>
         </div>
 
