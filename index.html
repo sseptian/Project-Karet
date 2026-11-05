@@ -368,15 +368,43 @@
               <span class="form-help">Dikonversi otomatis ke harga Rp/Ton (1 Ton = 1.000 Kg).</span>
             </div>
 
-            <!-- Kalkulator Timbangan Bertahap -->
+            <!-- Kalkulator Timbangan Bertahap & Opsi Input Langsung Ton -->
             <div class="form-group">
-              <div class="timbangan-header">
-                <label class="form-label">Timbangan Bertahap per Angkatan (Kw) <span>*</span></label>
-                <button type="button" id="btnAddTimbangan" class="btn-secondary">+ Tambah Angkatan</button>
+              <div class="toggle-mode-box">
+                <label class="toggle-mode-label" for="toggleInputTon">
+                  <input type="checkbox" id="toggleInputTon" />
+                  Input Langsung dalam Ton
+                </label>
+                <span class="toggle-mode-desc">Gunakan satu nilai total tonase tanpa angkatan Kw</span>
               </div>
 
-              <!-- Container row timbangan -->
-              <div id="timbanganContainer"></div>
+              <!-- Mode 1: Timbangan Bertahap per Angkatan (Kw) -->
+              <div id="sectionTimbanganBertahap">
+                <div class="timbangan-header">
+                  <label class="form-label">Timbangan Bertahap per Angkatan (Kw) <span>*</span></label>
+                  <button type="button" id="btnAddTimbangan" class="btn-secondary">+ Tambah Angkatan</button>
+                </div>
+                <div id="timbanganContainer"></div>
+              </div>
+
+              <!-- Mode 2: Input Langsung dalam Ton -->
+              <div id="sectionInputTon" class="hidden">
+                <div class="form-group" style="margin-bottom: 0.75rem;">
+                  <label class="form-label" for="beliTonaseLangsung">Total Berat Muatan (Ton) <span>*</span></label>
+                  <div class="input-unit-group">
+                    <input
+                      type="number"
+                      id="beliTonaseLangsung"
+                      class="form-input"
+                      placeholder="Contoh: 2.7"
+                      step="any"
+                      min="0"
+                    />
+                    <span class="unit-badge">Ton</span>
+                  </div>
+                  <div id="hintBeliTonaseLangsung" class="unit-hint-text"></div>
+                </div>
+              </div>
 
               <!-- Ringkasan Kalkulasi Realtime -->
               <div class="timbangan-summary">

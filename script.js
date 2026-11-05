@@ -842,16 +842,34 @@ function hapusTimbangan(btn) {
  * Estimasi harga = tonase × harga per ton
  */
 function hitungTimbangan() {
-  const inputs = document.querySelectorAll('.timbangan-input');
+  const isInputTon = document.getElementById('toggleInputTon') && document.getElementById('toggleInputTon').checked;
   let totalKuintal = 0;
+  let tonase = 0;
 
-  inputs.forEach(inp => {
-    const val = parseFloat(inp.value);
-    if (!isNaN(val) && val > 0) totalKuintal += val;
-  });
+  if (isInputTon) {
+    const inpTon = document.getElementById('beliTonaseLangsung');
+    const rawVal = parseFloat(inpTon ? inpTon.value : 0);
+    tonase = (!isNaN(rawVal) && rawVal > 0) ? rawVal : 0;
+    totalKuintal = tonase * KW_PER_TON; // 1 Ton = 10 Kw
 
-  // Konversi Kuintal → Ton (1 Ton = 10 Kuintal)
-  const tonase = totalKuintal / KW_PER_TON;
+    // Update petunjuk konversi kg & kw
+    const hintEl = document.getElementById('hintBeliTonaseLangsung');
+    if (hintEl) {
+      if (tonase > 0) {
+        const kg = tonase * 1000;
+        hintEl.textContent = `Setara: ${formatDecimal(kg, 0)} Kg (${formatDecimal(totalKuintal, 2)} Kw)`;
+      } else {
+        hintEl.textContent = '';
+      }
+    }
+  } else {
+    const inputs = document.querySelectorAll('.timbangan-input');
+    inputs.forEach(inp => {
+      const val = parseFloat(inp.value);
+      if (!isNaN(val) && val > 0) totalKuintal += val;
+    });
+    tonase = totalKuintal / KW_PER_TON;
+  }
 
   // Input harga dalam Rp/Kg (auto-format titik) → konversi ke Rp/Ton untuk kalkulasi
   // Rumus: hargaPerTon = hargaPerKg × 1000 (karena 1 Ton = 1000 Kg)
@@ -859,7 +877,7 @@ function hitungTimbangan() {
   const hargaPerTon = hargaPerKg * 1000;
 
   // Estimasi total harga = tonase × harga per ton
-  const estimasiHarga = tonase * hargaPerTon;
+  const estimasiHarga = Math.round(tonase * hargaPerTon);
 
   // Update preview
   document.getElementById('previewKuintal').textContent = formatDecimal(totalKuintal, 2) + ' Kw';
@@ -914,6 +932,39 @@ function updateDepositPreview(estimasiHarga) {
 function bindFormEvents() {
   // Tombol tambah angkatan
   document.getElementById('btnAddTimbangan').addEventListener('click', addTimbanganRow);
+
+  // Sakelar opsi Input Langsung dalam Ton
+  const toggleTon = document.getElementById('toggleInputTon');
+  const secBertahap = document.getElementById('sectionTimbanganBertahap');
+  const secTon = document.getElementById('sectionInputTon');
+  const inpTon = document.getElementById('beliTonaseLangsung');
+
+  if (toggleTon && secBertahap && secTon) {
+    toggleTon.addEventListener('change', () => {
+      if (toggleTon.checked) {
+        secBertahap.classList.add('hidden');
+        secTon.classList.remove('hidden');
+        if (inpTon) {
+          if (!inpTon.value) {
+            const currentKw = Array.from(document.querySelectorAll('.timbangan-input'))
+              .reduce((s, inp) => s + (parseFloat(inp.value) || 0), 0);
+            if (currentKw > 0) {
+              inpTon.value = Math.round((currentKw / KW_PER_TON) * 1000) / 1000;
+            }
+          }
+          inpTon.focus();
+        }
+      } else {
+        secTon.classList.add('hidden');
+        secBertahap.classList.remove('hidden');
+      }
+      hitungTimbangan();
+    });
+  }
+
+  if (inpTon) {
+    inpTon.addEventListener('input', hitungTimbangan);
+  }
 
   // Pasang auto-format Rupiah dengan pemisah titik
   attachRupiahAutoFormat(document.getElementById('beliHarga'), () => hitungTimbangan());
@@ -1026,32 +1077,46 @@ function handleCatatPembelian(e) {
     return;
   }
 
-  // Kumpulkan semua nilai timbangan
-  const inputs = document.querySelectorAll('.timbangan-input');
+  // Kumpulkan semua nilai timbangan (mendukung mode bertahap atau langsung ton)
+  const isInputTon = document.getElementById('toggleInputTon') && document.getElementById('toggleInputTon').checked;
   const timbanganValues = [];
   let totalKuintal = 0;
+  let totalTonase = 0;
 
-  inputs.forEach(inp => {
-    const val = parseFloat(inp.value);
-    if (!isNaN(val) && val > 0) {
-      timbanganValues.push(val);
-      totalKuintal += val;
+  if (isInputTon) {
+    const inpTon = document.getElementById('beliTonaseLangsung');
+    const rawVal = parseFloat(inpTon ? inpTon.value : 0);
+    if (isNaN(rawVal) || rawVal <= 0) {
+      showToast('Masukkan total berat tonase yang valid (lebih dari 0)!', 'error');
+      return;
     }
-  });
+    totalTonase = Math.round(rawVal * 1000) / 1000;
+    totalKuintal = Math.round(totalTonase * KW_PER_TON * 100) / 100;
+    timbanganValues.push(totalKuintal);
+  } else {
+    const inputs = document.querySelectorAll('.timbangan-input');
+    inputs.forEach(inp => {
+      const val = parseFloat(inp.value);
+      if (!isNaN(val) && val > 0) {
+        timbanganValues.push(val);
+        totalKuintal += val;
+      }
+    });
 
-  if (timbanganValues.length === 0 || totalKuintal <= 0) {
-    showToast('Masukkan minimal 1 angkatan timbangan yang valid!', 'error');
-    return;
+    if (timbanganValues.length === 0 || totalKuintal <= 0) {
+      showToast('Masukkan minimal 1 angkatan timbangan yang valid!', 'error');
+      return;
+    }
+
+    // Konversi kuintal → ton (1 Ton = 10 Kuintal)
+    totalTonase = totalKuintal / KW_PER_TON;
   }
-
-  // Konversi kuintal → ton (1 Ton = 10 Kuintal)
-  const totalTonase = totalKuintal / KW_PER_TON;
 
   // Konversi harga: Rp/Kg → Rp/Ton (1 Ton = 1000 Kg)
   const hargaPerTon = hargaPerKg * 1000;
 
   // Total harga = tonase × harga per ton
-  const totalHarga = totalTonase * hargaPerTon;
+  const totalHarga = Math.round(totalTonase * hargaPerTon);
 
   // Buat record transaksi pembelian
   // hargaBeli disimpan dalam Rp/Kg agar konsisten dengan input
@@ -1066,6 +1131,7 @@ function handleCatatPembelian(e) {
     totalTonase,
     totalHarga,
     catatan,
+    isDirectTon: isInputTon,
   };
   appData.pembelianTransactions.push(newTx);
 
@@ -1083,6 +1149,16 @@ function handleCatatPembelian(e) {
   populateSelects();
 
   // Reset form timbangan
+  const toggleTonEl = document.getElementById('toggleInputTon');
+  if (toggleTonEl) toggleTonEl.checked = false;
+  const secBertahapEl = document.getElementById('sectionTimbanganBertahap');
+  if (secBertahapEl) secBertahapEl.classList.remove('hidden');
+  const secTonEl = document.getElementById('sectionInputTon');
+  if (secTonEl) secTonEl.classList.add('hidden');
+  const inpTonEl = document.getElementById('beliTonaseLangsung');
+  if (inpTonEl) inpTonEl.value = '';
+  const hintTonEl = document.getElementById('hintBeliTonaseLangsung');
+  if (hintTonEl) hintTonEl.textContent = '';
   initTimbanganRow();
   document.getElementById('previewKuintal').textContent = '0 Kw';
   document.getElementById('previewTonase').textContent = '0.000 Ton';
@@ -1347,7 +1423,9 @@ function renderRiwayat(filter = {}) {
 
   tbody.innerHTML = data.map(tx => {
     const p = appData.pengepul.find(x => x.id === tx.pengepulId);
-    const timbanganDetail = tx.timbangan.map(v => formatDecimal(v, 2)).join(' + ');
+    const timbanganDetail = tx.isDirectTon
+      ? `${formatDecimal(tx.totalTonase, 2)} Ton (Langsung)`
+      : tx.timbangan.map(v => formatDecimal(v, 2)).join(' + ');
     const hargaKg = tx.hargaBeli;
     const hargaTon = tx.hargaPerTon ?? (hargaKg < 100000 ? hargaKg * 1000 : hargaKg);
     return `
@@ -1478,7 +1556,9 @@ function printRiwayat(filter = {}) {
     const p = appData.pengepul.find(x => x.id === tx.pengepulId);
     const hargaKg = tx.hargaBeli;
     const hargaTon = tx.hargaPerTon ?? (hargaKg < 100000 ? hargaKg * 1000 : hargaKg);
-    const detail = tx.timbangan.map(v => formatDecimal(v, 2)).join(' + ');
+    const detail = tx.isDirectTon
+      ? `${formatDecimal(tx.totalTonase, 2)} Ton (Langsung)`
+      : tx.timbangan.map(v => formatDecimal(v, 2)).join(' + ');
     return `
       <tr class="${i % 2 === 0 ? 'even' : ''}">
         <td>${i + 1}</td>
@@ -2535,7 +2615,7 @@ function populatePembelianTimbanganSelector() {
         <input type="checkbox" class="chk-timbangan-pick" data-id="${tx.id}" data-kg="${beratKg}" data-modal="${hargaBeli}" data-pengepul="${p ? p.nama : 'Pengepul'}" />
         <div class="timbangan-pick-info">
           <div style="font-weight: 600; color: var(--ink);">${namaPengepul}</div>
-          <div style="font-size: 0.75rem; color: var(--muted);">Timbang: ${formatTanggal(tx.tanggal)} &bull; ${tx.timbangan ? tx.timbangan.length : 1} angkatan timbang</div>
+          <div style="font-size: 0.75rem; color: var(--muted);">Timbang: ${formatTanggal(tx.tanggal)} &bull; ${tx.isDirectTon ? 'Langsung dalam Ton' : `${tx.timbangan ? tx.timbangan.length : 1} angkatan timbang`}</div>
         </div>
         <div class="timbangan-pick-qty">
           <div>${formatDecimal(beratKg, 1)} Kg <small style="font-weight: normal; color: var(--muted);">(${formatDecimal(tonase, 2)} Ton)</small></div>
